@@ -11,7 +11,6 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Media;
-using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Resources;
@@ -19,19 +18,21 @@ using System.Windows.Forms;
 
 namespace AgOpenGPS
 {
+
     //the main form object
     public partial class FormGPS : Form
     {
+        //To bring forward AgIO if running
+        [System.Runtime.InteropServices.DllImport("User32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr handle);
+
+        [System.Runtime.InteropServices.DllImport("User32.dll")]
+        private static extern bool ShowWindow(IntPtr hWind, int nCmdShow);
+
         #region // Class Props and instances
 
-        //list of vec3 points of Dubins shortest path between 2 points - To be converted to RecPt
-        public List<vec3> flagDubinsList = new List<vec3>();
-
         //maximum sections available
-        private const int MAXSECTIONS = 17;
-
-        //How many youturn functions
-        public const int MAXFUNCTIONS = 8;
+        public const int MAXSECTIONS = 64;
 
         //How many boundaries allowed
         public const int MAXBOUNDARIES = 6;
@@ -52,7 +53,7 @@ namespace AgOpenGPS
         public string envDirectory, envFileName = "";
 
         //current fields and field directory
-        public string fieldsDirectory, currentFieldDirectory;
+        public string fieldsDirectory, currentFieldDirectory, displayFieldName;
 
         private bool leftMouseDownOnOpenGL; //mousedown event in opengl window
         public int flagNumberPicked = 0;
@@ -64,7 +65,7 @@ namespace AgOpenGPS
         public bool isSavingFile = false, isLogNMEA = false, isLogElevation = false;
 
         //texture holders
-        public uint[] texture = new uint[15];
+        public uint[] texture;
 
         //the currentversion of software
         public string currentVersionStr, inoVersionStr;
@@ -73,6 +74,8 @@ namespace AgOpenGPS
         //create instance of a stopwatch for timing of frames and NMEA hz determination
         private readonly Stopwatch swFrame = new Stopwatch();
 
+        public double secondsSinceStart;
+
         //private readonly Stopwatch swDraw = new Stopwatch();
         //swDraw.Reset();
         //swDraw.Start();
@@ -80,20 +83,17 @@ namespace AgOpenGPS
         //label3.Text = ((double) swDraw.ElapsedTicks / (double) System.Diagnostics.Stopwatch.Frequency * 1000).ToString();
 
         //Time to do fix position update and draw routine
-        private double frameTime = 0;
+        public double frameTime = 0;
 
         //create instance of a stopwatch for timing of frames and NMEA hz determination
-        private readonly Stopwatch swHz = new Stopwatch();
+        //private readonly Stopwatch swHz = new Stopwatch();
 
         //Time to do fix position update and draw routine
-        private double HzTime = 5;
+        public double gpsHz = 10;
 
         //For field saving in background
         private int minuteCounter = 1;
         private int tenMinuteCounter = 1;
-
-        //for the NTRIP CLient counting
-        private int ntripCounter = 10;
 
         //whether or not to use Stanley control
         public bool isStanleyUsed = true;
@@ -110,6 +110,11 @@ namespace AgOpenGPS
 
         public double nudNumber = 0;
 
+        public double m2InchOrCm, inchOrCm2m, m2FtOrM, ftOrMtoM, cm2CmOrIn, inOrCm2Cm;
+        public string unitsFtM, unitsInCm;
+
+        public char[] hotkeys;
+
         //used by filePicker Form to return picked file and directory
         public string filePickerFileAndDirectory;
 
@@ -117,6 +122,9 @@ namespace AgOpenGPS
 
         //the autoManual drive button. Assume in Auto
         public bool isInAutoDrive = true;
+
+        //isGPSData form up
+        public bool isGPSSentencesOn = false, isKeepOffsetsOn = false;
 
         /// <summary>
         /// create the scene camera
@@ -134,9 +142,15 @@ namespace AgOpenGPS
         public CNMEA pn;
 
         /// <summary>
-        /// an array of sections, so far 16 section + 1 fullWidth Section
+        /// an array of sections
         /// </summary>
         public CSection[] section;
+
+        /// <summary>
+        /// an array of patches to draw
+        /// </summary>
+        //public CPatches[] triStrip;
+        public List<CPatches> triStrip;
 
         /// <summary>
         /// AB Line object
@@ -147,11 +161,6 @@ namespace AgOpenGPS
         /// TramLine class for boundary and settings
         /// </summary>
         public CTram tram;
-
-        /// <summary>
-        /// The grid for collision Avoidance
-        /// </summary>
-        public CMazeGrid mazeGrid;
 
         /// <summary>
         /// Contour Mode Instance
@@ -177,7 +186,7 @@ namespace AgOpenGPS
         /// Just the tool attachment that includes the sections
         /// </summary>
         public CTool tool;
-        
+
         /// <summary>
         /// All the structs for recv and send of information out ports
         /// </summary>
@@ -189,21 +198,6 @@ namespace AgOpenGPS
         public CBoundary bnd;
 
         /// <summary>
-        /// The boundary object
-        /// </summary>
-        public CTurn turn;
-
-        /// <summary>
-        /// The headland created
-        /// </summary>
-        public CHead hd;
-
-        /// <summary>
-        /// The entry and exit sequences, functions, actions
-        /// </summary>
-        public CSequence seq;
-
-        /// <summary>
         /// The internal simulator
         /// </summary>
         public CSim sim;
@@ -212,11 +206,6 @@ namespace AgOpenGPS
         /// Resource manager for gloabal strings
         /// </summary>
         public ResourceManager _rm;
-
-        /// <summary>
-        /// AutoSteer class of properties
-        /// </summary>
-        public CAutoSteer ast;
 
         /// <summary>
         /// Heading, Roll, Pitch, GPS, Properties
@@ -233,25 +222,36 @@ namespace AgOpenGPS
         /// </summary>
         public CFieldData fd;
 
-        /// <summary>
-        /// GeoFence around everything you cannot cross
-        /// </summary>
-        public CGeoFence gf;
-
-        /// <summary>
-        /// Class containing workswitch functionality
-        /// </summary>
-        public CWorkSwitch workSwitch;
+        ///// <summary>
+        ///// Sound
+        ///// </summary>
+        public CSound sounds;
 
         /// <summary>
         /// Sound for approaching boundary
         /// </summary>
-        public SoundPlayer sndBoundaryAlarm;
+        public SoundPlayer sndHydraulicLift;
+
+        /// <summary>
+        /// Sound for approaching boundary
+        /// </summary>
+        public SoundPlayer sndHydraulicLower;
 
         /// <summary>
         /// The font class
         /// </summary>
         public CFont font;
+
+        /// <summary>
+        /// The new steer algorithms
+        /// </summary>
+        public CGuidance gyd;
+
+        /// <summary>
+        /// The new brightness code
+        /// </summary>
+        public CWindowsSettingsBrightnessController displayBrightness;
+
 
         #endregion // Class Props and instances
 
@@ -261,78 +261,10 @@ namespace AgOpenGPS
             //winform initialization
             InitializeComponent();
 
-            //ControlExtension.Draggable(panelSnap, true);
-            ControlExtension.Draggable(oglZoom, true);
-            //ControlExtension.Draggable(panelSim, true);
+            CheckSettingsNotNull();
 
-            setWorkingDirectoryToolStripMenuItem.Text = gStr.gsDirectories;
-            enterSimCoordsToolStripMenuItem.Text = gStr.gsEnterSimCoords;
-            topMenuLoadVehicle.Text = gStr.gsLoadVehicle;
-            topMenuSaveVehicle.Text = gStr.gsSaveVehicle;
-            aboutToolStripMenuItem.Text = gStr.gsAbout;
-            shortcutKeysToolStripMenuItem.Text = gStr.gsShortcutKeys;
-            menustripLanguage.Text = gStr.gsLanguage;
-            topMenuLoadTool.Text = gStr.gsLoadTool;
-            topMenuSaveTool.Text = gStr.gsSaveTool;
-            topMenuLoadEnvironment.Text = gStr.gsLoadEnvironment;
-            topMenuSaveEnvironment.Text = gStr.gsSaveEnvironment;
-            gPSInfoToolStripMenuItem.Text = gStr.gsModuleInfo;
-            showStartScreenToolStripMenuItem.Text = gStr.gsShowStartScreen;
-            //Display Menu
-
-            //settingsToolStripMenuItem.Text = gStr.gsDisplay;
-            topMenuFileExplorer.Text = gStr.gsWindowsFileExplorer;
-            optionsToolStripMenuItem.Text = gStr.gsOptions;
-
-            simulatorOnToolStripMenuItem.Text = gStr.gsSimulatorOn;
-
-            resetALLToolStripMenuItem.Text = gStr.gsResetAll;
-            colorsToolStripMenuItem.Text = gStr.gsColors;
-            lightbarToolStripMenuItem.Text = gStr.gsLightbarOn;
-            topFieldViewToolStripMenuItem.Text = gStr.gsTopFieldView;
-            toolToolStripMenu.Text = gStr.gsTool;
-
-            resetEverythingToolStripMenuItem.Text = gStr.gsResetAllForSure;
-            fileExplorerToolStripMenuItem.Text = gStr.gsWindowsFileExplorer;
-
-            //Settings Menu
-            toolstripYouTurnConfig.Text = gStr.gsUTurn;
-            toolstripAutoSteerConfig.Text = gStr.gsAutoSteer;
-            steerChartStripMenu.Text = gStr.gsSteerChart;
-            toolstripVehicleConfig.Text = gStr.gsVehicle;
-            toolstripDisplayConfig.Text = gStr.gsDataSources;
-            toolstripUSBPortsConfig.Text = gStr.gsSerialPorts;
-            toolstripUDPConfig.Text = gStr.gsUDP;
-            toolStripNTRIPConfig.Text = gStr.gsNTRIP;
-
-            //Tools Menu
-            treePlantToolStrip.Text = gStr.gsTreePlanter;
-            SmoothABtoolStripMenu.Text = gStr.gsSmoothABCurve;
-            toolStripBtnMakeBndContour.Text = gStr.gsMakeBoundaryContours;
-            boundariesToolStripMenuItem.Text = gStr.gsBoundary;
-            headlandToolStripMenuItem.Text = gStr.gsHeadland;
-            deleteContourPathsToolStripMenuItem.Text = gStr.gsDeleteContourPaths;
-            deleteAppliedAreaToolStripMenuItem.Text = gStr.gsDeleteAppliedArea;
-            deleteForSureToolStripMenuItem.Text = gStr.gsAreYouSure;
-            webcamToolStrip.Text = gStr.gsWebCam;
-            googleEarthFlagsToolStrip.Text = gStr.gsGoogleEarth;
-            offsetFixToolStrip.Text = gStr.gsOffsetFix;
-            moduleConfigToolStripMenuItem.Text = gStr.gsModuleConfiguration;
-
-            //Recorded Path
-            deletePathMenu.Text = gStr.gsDeletePath;
-            recordPathMenu.Text = gStr.gsRecordStop;
-            goPathMenu.Text = gStr.gsGoStop;
-            pausePathMenu.Text = gStr.gsPauseResume;
-
-            stripSectionColor.Text = Application.ProductVersion.ToString(CultureInfo.InvariantCulture);
-
-            //NTRIP
-            this.lblWatch.Text = "Wait GPS";
-            NTRIPStartStopStrip.Text = gStr.gsNTRIPOff;
-
-            //build the gesture structures
-            SetupStructSizes();
+            //time keeper
+            secondsSinceStart = (DateTime.Now - Process.GetCurrentProcess().StartTime).TotalSeconds;
 
             //create the world grid
             worldGrid = new CWorldGrid(this);
@@ -344,8 +276,14 @@ namespace AgOpenGPS
 
             //create a new section and set left and right positions
             //created whether used or not, saves restarting program
+
             section = new CSection[MAXSECTIONS];
-            for (int j = 0; j < MAXSECTIONS; j++) section[j] = new CSection(this);
+            for (int j = 0; j < MAXSECTIONS; j++) section[j] = new CSection();
+
+            triStrip = new List<CPatches>
+            {
+                new CPatches(this)
+            };
 
             //our NMEA parser
             pn = new CNMEA(this);
@@ -359,10 +297,7 @@ namespace AgOpenGPS
             //new instance of contour mode
             curve = new CABCurve(this);
 
-            //instance of tram
-            tram = new CTram(this);
-
-            //new instance of auto headland turn
+            ////new instance of auto headland turn
             yt = new CYouTurn(this);
 
             //module communication
@@ -371,26 +306,11 @@ namespace AgOpenGPS
             //boundary object
             bnd = new CBoundary(this);
 
-            //Turn object
-            turn = new CTurn(this);
-
-            //GeoFence
-            gf = new CGeoFence(this);
-
-            //headland object
-            hd = new CHead( this);
-
-            //headland entry/exit sequences
-            seq = new CSequence(this);
-
             //nmea simulator built in.
             sim = new CSim(this);
 
-            //all the autosteer objects
-            ast = new CAutoSteer(this);
-
-            //all the attitude, heading, roll, pitch reference system
-            ahrs = new CAHRS(this);
+            ////all the attitude, heading, roll, pitch reference system
+            ahrs = new CAHRS();
 
             //A recorded path
             recPath = new CRecordedPath(this);
@@ -398,50 +318,63 @@ namespace AgOpenGPS
             //fieldData all in one place
             fd = new CFieldData(this);
 
-            //The grid for obstacle avoidance
-            mazeGrid = new CMazeGrid(this);
-
             //start the stopwatch
             //swFrame.Start();
+
+            //instance of tram
+            tram = new CTram(this);
 
             //resource for gloabal language strings
             _rm = new ResourceManager("AgOpenGPS.gStr", Assembly.GetExecutingAssembly());
 
-            // Add Message Event handler for Form decoupling from client socket thread
-            updateRTCM_DataEvent = new UpdateRTCM_Data(OnAddMessage);
-
-            // Access to workswitch functionality
-            workSwitch = new CWorkSwitch(this);
-
             //access to font class
             font = new CFont(this);
-        }
 
-        private void ZoomByMouseWheel(object sender, MouseEventArgs e)
-        {
-            if (e.Delta > 0)
-            {
-                if (camera.zoomValue <= 20) camera.zoomValue += camera.zoomValue * 0.02;
-                else camera.zoomValue += camera.zoomValue * 0.01;
-                if (camera.zoomValue > 120) camera.zoomValue = 120;
-                camera.camSetDistance = camera.zoomValue * camera.zoomValue * -1;
-                SetZoom();
-            }
-            else
-            {
-                if (camera.zoomValue <= 20)
-                { if ((camera.zoomValue -= camera.zoomValue * 0.02) < 6.0) camera.zoomValue = 6.0; }
-                else { if ((camera.zoomValue -= camera.zoomValue * 0.01) < 6.0) camera.zoomValue = 6.0; }
+            //the new steer algorithms
+            gyd = new CGuidance(this);
 
-                camera.camSetDistance = camera.zoomValue * camera.zoomValue * -1;
-                SetZoom();
-            }
+            //sounds class
+            sounds = new CSound();
+
+            //brightness object class
+            displayBrightness = new CWindowsSettingsBrightnessController(Properties.Settings.Default.setDisplay_isBrightnessOn);
         }
 
         //Initialize items before the form Loads or is visible
         private void FormGPS_Load(object sender, EventArgs e)
         {
             this.MouseWheel += ZoomByMouseWheel;
+
+            //start udp server is required
+            StartLoopbackServer();
+
+            //boundaryToolStripBtn.Enabled = false;
+            FieldMenuButtonEnableDisable(false);
+
+            panelRight.Enabled = false;
+
+            oglMain.Left = 75;
+            oglMain.Width = this.Width - statusStripLeft.Width - 84;
+
+            panelSim.Left = 100;
+            panelSim.Width = Width - statusStripLeft.Width - 200;
+
+            timer2.Enabled = true;
+
+            pictureboxStart.BringToFront();
+            pictureboxStart.Dock = System.Windows.Forms.DockStyle.Fill;
+
+            //set the language to last used
+            SetLanguage(Settings.Default.setF_culture, false);
+
+            currentVersionStr = Application.ProductVersion.ToString(CultureInfo.InvariantCulture);
+
+            string[] fullVers = currentVersionStr.Split('.');
+            int inoV = int.Parse(fullVers[0], CultureInfo.InvariantCulture);
+            inoV += int.Parse(fullVers[1], CultureInfo.InvariantCulture);
+            inoV += int.Parse(fullVers[2], CultureInfo.InvariantCulture);
+            inoVersionInt = inoV;
+            inoVersionStr = inoV.ToString();
 
 
             if (Settings.Default.setF_workingDirectory == "Default")
@@ -458,16 +391,10 @@ namespace AgOpenGPS
             dir = Path.GetDirectoryName(vehiclesDirectory);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) { Directory.CreateDirectory(dir); }
 
-            //get the tools directory, if not exist, create
-            toolsDirectory = baseDirectory + "Tools\\";
-            dir = Path.GetDirectoryName(toolsDirectory);
+            //get the abLines directory, if not exist, create
+            ablinesDirectory = baseDirectory + "ABLines\\";
+            dir = Path.GetDirectoryName(fieldsDirectory);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) { Directory.CreateDirectory(dir); }
-
-            //get the tools directory, if not exist, create
-            envDirectory = baseDirectory + "Environments\\";
-            dir = Path.GetDirectoryName(envDirectory);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) { Directory.CreateDirectory(dir); }
-
 
             //make sure current field directory exists, null if not
             currentFieldDirectory = Settings.Default.setF_CurrentDir;
@@ -485,620 +412,223 @@ namespace AgOpenGPS
                 }
             }
 
-            string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            string wave = Path.Combine(directoryName, "Dependencies\\Audio", "Boundary.Wav");
-            if (File.Exists(wave))
+            if (displayBrightness.isWmiMonitor)
             {
-                sndBoundaryAlarm = new SoundPlayer(wave);
-            }
-            else
-            {
-                sndBoundaryAlarm = new SoundPlayer(Properties.Resources.Alarm10);
-            }
-
-            //grab the current vehicle filename - make sure it exists
-            vehicleFileName = Vehicle.Default.setVehicle_vehicleName;
-            toolFileName = Vehicle.Default.setVehicle_toolName;
-            envFileName = Vehicle.Default.setVehicle_envName;
-
-
-            //get the abLines directory, if not exist, create
-            ablinesDirectory = baseDirectory + "ABLines\\";
-            dir = Path.GetDirectoryName(fieldsDirectory);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) { Directory.CreateDirectory(dir); }
-
-            //set baud and port from last time run
-            baudRateGPS = Settings.Default.setPort_baudRate;
-            portNameGPS = Settings.Default.setPort_portNameGPS;
-
-            //try and open
-            SerialPortOpenGPS();
-
-            if (spGPS.IsOpen)
-            {
-                simulatorOnToolStripMenuItem.Checked = false;
-                panelSim.Visible = false;
-                timerSim.Enabled = false;
-
-                Settings.Default.setMenu_isSimulatorOn = simulatorOnToolStripMenuItem.Checked;
+                Settings.Default.setDisplay_brightnessSystem = displayBrightness.GetBrightness();
                 Settings.Default.Save();
             }
 
-            //same for SectionMachine port
-            portNameMachine = Settings.Default.setPort_portNameMachine;
-            wasRateMachineConnectedLastRun = Settings.Default.setPort_wasMachineConnected;
-            if (wasRateMachineConnectedLastRun) SerialPortMachineOpen();
-
-            //same for AutoSteer port
-            portNameAutoSteer = Settings.Default.setPort_portNameAutoSteer;
-            wasAutoSteerConnectedLastRun = Settings.Default.setPort_wasAutoSteerConnected;
-            if (wasAutoSteerConnectedLastRun) SerialPortAutoSteerOpen();
-
-            //Set width of section and positions for each section
-            SectionSetPosition();
-
-            //Calculate total width and each section width
-            SectionCalcWidths();
-
-            //set the correct zoom and grid
-            camera.camSetDistance = camera.zoomValue * camera.zoomValue * -1;
-            SetZoom();
-
-            //which heading source is being used
-            headingFromSource = Settings.Default.setGPS_headingFromWhichSource;
-
-            //triangle resolution is how far to next triangle point trigger distance
-            //triangleResolution = Settings.Default.setDisplay_triangleResolution;
-
-            //start udp server if required
-            if (Properties.Settings.Default.setUDP_isOn 
-                && !Properties.Settings.Default.setUDP_isInterAppOn) StartUDPServer();
-
-            if (Properties.Settings.Default.setUDP_isInterAppOn) StartLocalUDPServer();
-
-            //start NTRIP if required
-                if (Properties.Settings.Default.setNTRIP_isOn)
-            {
-                isNTRIP_RequiredOn = true;
-            }
-            else
-            {
-                isNTRIP_RequiredOn = false;
-            }
-
-            //remembered window position
-            if (Settings.Default.setWindow_Maximized)
-            {
-                WindowState = FormWindowState.Normal;
-                Location = Settings.Default.setWindow_Location;
-                Size = Settings.Default.setWindow_Size;
-            }
-            else if (Settings.Default.setWindow_Minimized)
-            {
-                //WindowState = FormWindowState.Minimized;
-                Location = Settings.Default.setWindow_Location;
-                Size = Settings.Default.setWindow_Size;
-            }
-            else
-            {
-                Location = Settings.Default.setWindow_Location;
-                Size = Settings.Default.setWindow_Size;
-            }
-
-            //don't draw the back opengl to GDI - it still works tho
-            //openGLControlBack.Visible = false;
-
-            //clear the flags
-            flagPts.Clear();
-            btnFlag.Enabled = false;
-
-            //workswitch stuff
-            mc.isWorkSwitchEnabled = Settings.Default.setF_IsWorkSwitchEnabled;
-            mc.isWorkSwitchActiveLow = Settings.Default.setF_IsWorkSwitchActiveLow;
-            mc.isWorkSwitchManual = Settings.Default.setF_IsWorkSwitchManual;
-
-            minFixStepDist = Settings.Default.setF_minFixStep;
-
-            fd.workedAreaTotalUser = Settings.Default.setF_UserTotalArea;
-            fd.userSquareMetersAlarm = Settings.Default.setF_UserTripAlarm;
-
-            //space between points while recording a boundary
-            //boundaryTriggerDistance = Settings.Default.setF_boundaryTriggerDistance;
-
-            //load the last used auto turn shape
-            string fileAndDir = @".\Dependencies\YouTurnShapes\" + Properties.Settings.Default.setAS_youTurnShape;
-            yt.LoadYouTurnShapeFromFile(fileAndDir);
-
-            //sim.latitude = Settings.Default.setSim_lastLat;
-            //sim.longitude = Settings.Default.setSim_lastLong;
-
-            //load th elightbar resolution
-            lightbarCmPerPixel = Properties.Settings.Default.setDisplay_lightbarCmPerPixel;
 
             // load all the gui elements in gui.designer.cs
-            LoadGUI();
+            LoadSettings();
 
-            //Stanley guidance
-            isStanleyUsed = Properties.Vehicle.Default.setVehicle_isStanleyUsed;
+            if (Settings.Default.setMenu_isOGLZoomOn == 1)
+                topFieldViewToolStripMenuItem.Checked = true;
+            else topFieldViewToolStripMenuItem.Checked = false;
 
-            isRTK = Properties.Settings.Default.setGPS_isRTK;
+            oglZoom.Width = 400;
+            oglZoom.Height = 400;
+            oglZoom.Visible = true;
+            oglZoom.Left = 300;
+            oglZoom.Top = 80;
+
+            if (!topFieldViewToolStripMenuItem.Checked)
+            {
+                oglZoom.SendToBack();
+            }
+
+            if (Properties.Settings.Default.setDisplay_isAutoStartAgIO)
+            {
+                //Start AgIO process
+                Process[] processName = Process.GetProcessesByName("AgIO");
+                if (processName.Length == 0)
+                {
+                    //Start application here
+                    DirectoryInfo di = new DirectoryInfo(Application.StartupPath);
+                    string strPath = di.ToString();
+                    strPath += "\\AgIO.exe";
+                    try
+                    {
+                        ProcessStartInfo processInfo = new ProcessStartInfo
+                        {
+                            FileName = strPath,
+                            WorkingDirectory = Path.GetDirectoryName(strPath)
+                        };
+                        Process proc = Process.Start(processInfo);
+                    }
+                    catch
+                    {
+                        TimedMessageBox(2000, "No File Found", "Can't Find AgIO");
+                    }
+                }
+            }
+
+            //nmea limiter
+            udpWatch.Start();
+
+            //ControlExtension.Draggable(panelSnap, true);
+            ControlExtension.Draggable(oglZoom, true);
+            ControlExtension.Draggable(panelDrag, true);
+
+            setWorkingDirectoryToolStripMenuItem.Text = gStr.gsDirectories;
+            enterSimCoordsToolStripMenuItem.Text = gStr.gsEnterSimCoords;
+            aboutToolStripMenuItem.Text = gStr.gsAbout;
+            menustripLanguage.Text = gStr.gsLanguage;
+
+
+            simulatorOnToolStripMenuItem.Text = gStr.gsSimulatorOn;
+
+            resetALLToolStripMenuItem.Text = gStr.gsResetAll;
+            colorsToolStripMenuItem1.Text = gStr.gsColors;
+            topFieldViewToolStripMenuItem.Text = gStr.gsTopFieldView;
+
+            resetEverythingToolStripMenuItem.Text = gStr.gsResetAllForSure;
+
+            steerChartStripMenu.Text = gStr.gsSteerChart;
+
+            //Tools Menu
+            SmoothABtoolStripMenu.Text = gStr.gsSmoothABCurve;
+            boundariesToolStripMenuItem.Text = gStr.gsBoundary;
+            headlandToolStripMenuItem.Text = gStr.gsHeadland;
+            deleteContourPathsToolStripMenuItem.Text = gStr.gsDeleteContourPaths;
+            deleteAppliedAreaToolStripMenuItem.Text = gStr.gsDeleteAppliedArea;
+            deleteForSureToolStripMenuItem.Text = gStr.gsAreYouSure;
+            webcamToolStrip.Text = gStr.gsWebCam;
+            offsetFixToolStrip.Text = gStr.gsOffsetFix;
+
+            btnChangeMappingColor.Text = Application.ProductVersion.ToString(CultureInfo.InvariantCulture);
+            //btnChangeMappingColor.Text = btnChangeMappingColor.Text.Substring(2);
+
+            hotkeys = new char[19];
+
+            hotkeys = Properties.Settings.Default.setKey_hotkeys.ToCharArray();
         }
 
-        //form is closing so tidy up and save settings
         private void FormGPS_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //Save, return, cancel save
             if (isJobStarted)
             {
+                if (autoBtnState == btnStates.Auto)
+                {
+                    TimedMessageBox(2000, "Safe Shutdown", "Turn off Auto Section Control");
+                    e.Cancel = true;
+                    return;
+                }
+
+                if (manualBtnState == btnStates.On)
+                {
+                    TimedMessageBox(2000, "Safe Shutdown", "Turn off Manual Section Control");
+                    e.Cancel = true;
+                    return;
+                }
+
+
                 bool closing = true;
                 int choice = SaveOrNot(closing);
 
-                switch (choice)
+                if (choice == 1)
                 {
-                    //OK
-                    case 0:
-                        isUDPSendConnected = false;
+                    e.Cancel = true;
+                    return;
+                }
+
+                //Save, return, cancel save
+                if (isJobStarted)
+                {
+                    if (choice == 3)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                    else if (choice == 0)
+                    {
                         Settings.Default.setF_CurrentDir = currentFieldDirectory;
                         Settings.Default.Save();
 
                         FileSaveEverythingBeforeClosingField();
 
-                        //shutdown and reset all module data
-                        mc.ResetAllModuleCommValues();
-                        break;
-
-                    //Ignore and return
-                    case 1:
-                        e.Cancel = true;
-                        break;
+                        displayFieldName = gStr.gsNone;
+                    }
                 }
             }
 
-            //save window settings
-            if (WindowState == FormWindowState.Maximized)
+            SaveFormGPSWindowSettings();
+
+            if (loopBackSocket != null)
             {
-                Settings.Default.setWindow_Location = RestoreBounds.Location;
-                Settings.Default.setWindow_Size = RestoreBounds.Size;
-                Settings.Default.setWindow_Maximized = false;
-                Settings.Default.setWindow_Minimized = false;
-            }
-            else if (WindowState == FormWindowState.Normal)
-            {
-                Settings.Default.setWindow_Location = Location;
-                Settings.Default.setWindow_Size = Size;
-                Settings.Default.setWindow_Maximized = false;
-                Settings.Default.setWindow_Minimized = false;
-            }
-            else
-            {
-                Settings.Default.setWindow_Location = RestoreBounds.Location;
-                Settings.Default.setWindow_Size = RestoreBounds.Size;
-                Settings.Default.setWindow_Maximized = false;
-                Settings.Default.setWindow_Minimized = true;
+                try
+                {
+                    loopBackSocket.Shutdown(SocketShutdown.Both);
+                }
+                catch { }
+                finally { loopBackSocket.Close(); }
             }
 
-            Settings.Default.setDisplay_camPitch = camera.camPitch;
-            Settings.Default.setF_UserTotalArea = fd.workedAreaTotalUser;
-            Settings.Default.setF_UserTripAlarm = fd.userSquareMetersAlarm;
+            //save current vehicle
+            SettingsIO.ExportAll(vehiclesDirectory + vehicleFileName + ".XML");
 
-            //Settings.Default.setDisplay_panelSnapLocation = panelSnap.Location;
-            Settings.Default.setDisplay_panelSimLocation = panelSim.Location;
+            if (displayBrightness.isWmiMonitor)
+                displayBrightness.SetBrightness(Settings.Default.setDisplay_brightnessSystem);
 
-            Settings.Default.Save();
         }
 
         //called everytime window is resized, clean up button positions
         private void FormGPS_Resize(object sender, EventArgs e)
         {
-            LineUpManualBtns();
             FixPanelsAndMenus();
+            if (isGPSPositionInitialized) SetZoom();
         }
 
-        // Procedures and Functions ---------------------------------------
+        // Load Bitmaps And Convert To Textures
+
+        public void CheckSettingsNotNull()
+        {
+            if (Settings.Default.setFeatures == null)
+            {
+                Settings.Default.setFeatures = new CFeatureSettings();
+            }
+        }
 
         public void LoadGLTextures()
         {
             GL.Enable(EnableCap.Texture2D);
-            try
+
+            Bitmap[] oglTextures = new Bitmap[]
             {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "Landscape.png");
-                if (File.Exists(text))
+                Properties.Resources.z_SkyDay,Properties.Resources.z_Floor,Properties.Resources.z_Font,
+                Properties.Resources.z_Turn,Properties.Resources.z_TurnCancel,Properties.Resources.z_TurnManual,
+                Properties.Resources.z_Compass,Properties.Resources.z_Speedo,Properties.Resources.z_SpeedoNeedle,
+                Properties.Resources.z_Lift,Properties.Resources.z_SkyNight,Properties.Resources.z_SteerPointer,
+                Properties.Resources.z_SteerDot,GetTractorBrand(Settings.Default.setBrand_TBrand),Properties.Resources.z_QuestionMark,
+                Properties.Resources.z_FrontWheels,Get4WDBrandFront(Settings.Default.setBrand_WDBrand), Get4WDBrandRear(Settings.Default.setBrand_WDBrand),
+                GetHarvesterBrand(Settings.Default.setBrand_HBrand), Properties.Resources.z_LateralManual, Resources.z_bingMap, Resources.z_NoGPS
+            };
+
+            texture = new uint[oglTextures.Length];
+
+            for (int h = 0; h < oglTextures.Length; h++)
+            {
+                using (Bitmap bitmap = oglTextures[h])
                 {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[0]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[0]);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9729);
-                        BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmapData.Width, bitmapData.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bitmapData.Scan0);
-                        bitmap.UnlockBits(bitmapData);
-                    }
+                    GL.GenTextures(1, out texture[h]);
+                    GL.BindTexture(TextureTarget.Texture2D, texture[h]);
+                    BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmapData.Width, bitmapData.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bitmapData.Scan0);
+                    bitmap.UnlockBits(bitmapData);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9729);
                 }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File LANDSCAPE.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string text2 = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Dependencies\\Images", "Floor.png");
-                if (File.Exists(text2))
-                {
-                    using (Bitmap bitmap2 = new Bitmap(text2))
-                    {
-                        GL.GenTextures(1, out texture[1]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[1]);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9729);
-                        BitmapData bitmapData2 = bitmap2.LockBits(new Rectangle(0, 0, bitmap2.Width, bitmap2.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmapData2.Width, bitmapData2.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bitmapData2.Scan0);
-                        bitmap2.UnlockBits(bitmapData2);
-                    }
-                }
-            }
-            catch (Exception ex2)
-            {
-                //WriteErrorLog("Loading Floor Texture" + ex2);
-                MessageBox.Show("Texture File FLOOR.PNG is Missing", ex2.Message);
-            }
-
-            try
-            {
-                string text2 = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Dependencies\\Images", "Font.png");
-                if (File.Exists(text2))
-                {
-                    using (Bitmap bitmap = new Bitmap(text2))
-                    {
-                        GL.GenTextures(1, out texture[2]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[2]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9729);
-
-                        font.textureWidth = bitmap.Width; font.textureHeight = bitmap.Height;
-                    }
-                }
-            }
-            catch (Exception ex2)
-            {
-                //WriteErrorLog("Loading Floor Texture" + ex2);
-                MessageBox.Show("Texture File Font.PNG is Missing", ex2.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "Turn.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[3]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[3]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File TURN.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "TurnCancel.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[4]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[4]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File TURNCANCEL.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "TurnManual.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[5]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[5]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File TURNManual.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "Compass.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[6]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[6]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9726);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File Compass.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "Speedo.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[7]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[7]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9729);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File Speedo.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "SpeedoNedle.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[8]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[8]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File SpeedoNeedle.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "Lift.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[9]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[9]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File Lift.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "LandscapeNight.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[10]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[10]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9729);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File LAndscapeNight.PNG is Missing", ex.Message);
-            }
-
-            try
-            {
-                string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string text = Path.Combine(directoryName, "Dependencies\\images", "Steer.png");
-                if (File.Exists(text))
-                {
-                    using (Bitmap bitmap = new Bitmap(text))
-                    {
-                        GL.GenTextures(1, out texture[11]);
-                        GL.BindTexture(TextureTarget.Texture2D, texture[11]);
-                        BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-                        bitmap.UnlockBits(data);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9729);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //WriteErrorLog("Loading Landscape Textures" + ex);
-                MessageBox.Show("Texture File Steer.PNG is Missing", ex.Message);
-            }
-
-        }// Load Bitmaps And Convert To Textures
-
-        //start the UDP server
-        private void StartUDPServer()
-        {            
-            try
-            {
-                // Initialise the delegate which updates the message received
-                updateRecvMessageDelegate = UpdateRecvMessage;
-
-                // Initialise the socket
-                sendSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                recvSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                sendSocket.EnableBroadcast = true;
-                recvSocket.EnableBroadcast = true;
-
-                // Initialise the IPEndPoint for the server and listen on port 9999
-                IPEndPoint recv = new IPEndPoint(IPAddress.Any, Properties.Settings.Default.setIP_thisPort);
-
-                // Associate the socket with this IP address and port
-                recvSocket.Bind(recv);
-
-                // Initialise the IPEndPoint for the server to send on port 9998
-                IPEndPoint server = new IPEndPoint(IPAddress.Any, 9998);
-                sendSocket.Bind(server);
-
-                // Initialise the IPEndPoint for the client - async listner client only!
-                EndPoint client = new IPEndPoint(IPAddress.Any, 0);
-
-                // Start listening for incoming data
-                recvSocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None,
-                                                ref client, new AsyncCallback(ReceiveData), recvSocket);
-                isUDPSendConnected = true;
-            }
-            catch (Exception e)
-            {
-                //WriteErrorLog("UDP Server" + e);
-                MessageBox.Show("Load Error: " + e.Message, "UDP Server", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        public void StartLocalUDPServer()
-        {
-            //inter App sockets
-            try
-            {
-                // Initialise the delegate which updates the status
-                updateStatusDelegate = new UpdateStatusDelegate(UpdateAppStatus);
-
-                // Initialise the socket
-                sendToAppSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                // Initialise the IPEndPoint for the server to send on port 15554
-                IPEndPoint server = new IPEndPoint(IPAddress.Loopback, 15554);
-                sendToAppSocket.Bind(server);
-
-                // Initialise the client socket
-                recvFromAppSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                // Initialise the IPEndPoint for and listen on port 15555
-                IPEndPoint client = new IPEndPoint(IPAddress.Loopback, 15555);
-                recvFromAppSocket.Bind(client);
-
-                //Our external app address & port number
-                epAppOne = new IPEndPoint(IPAddress.Loopback, 17777);
-                //epAppTwo = new IPEndPoint(zeroIP, 16666);
-
-                // Initialise the IPEndPoint for the client
-                EndPoint clientEp = new IPEndPoint(IPAddress.Loopback, 0);
-
-                // Start listening for incoming data
-                recvFromAppSocket.BeginReceiveFrom(appBuffer, 0, appBuffer.Length, SocketFlags.None,
-                                                ref clientEp, new AsyncCallback(ReceiveAppData), recvFromAppSocket);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Load Error: " + ex.Message, "UDP Server", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        public void SwapDirection()
-        {
-            if (!yt.isYouTurnTriggered)
-            {
-                //is it turning right already?
-                if (yt.isYouTurnRight)
-                {
-                    yt.isYouTurnRight = false;
-                    yt.isLastYouTurnRight = !yt.isLastYouTurnRight;
-                    yt.ResetCreatedYouTurn();
-                }
-                else
-                {
-                    //make it turn the other way
-                    yt.isYouTurnRight = true;
-                    yt.isLastYouTurnRight = !yt.isLastYouTurnRight;
-                    yt.ResetCreatedYouTurn();
-                }
-            }
-            else
-            {
-                if (yt.isYouTurnBtnOn) btnAutoYouTurn.PerformClick();
             }
         }
 
         //dialog for requesting user to save or cancel
         public int SaveOrNot(bool closing)
         {
-            using (var form = new FormSaveOrNot(closing))
+            CloseTopMosts();
+
+            using (FormSaveOrNot form = new FormSaveOrNot(closing))
             {
-                var result = form.ShowDialog();
+                DialogResult result = form.ShowDialog(this);
 
                 if (result == DialogResult.OK) return 0;      //Save and Exit
                 if (result == DialogResult.Ignore) return 1;   //Ignore
@@ -1107,265 +637,49 @@ namespace AgOpenGPS
             }
         }
 
-        private void btnTestIsMapping_Click(object sender, EventArgs e)
+        //make the start picture disappear
+        private void timer2_Tick(object sender, EventArgs e)
         {
-            isMapping = !isMapping;
-            //if (isMapping) btnTestIsMapping.Text = "Mapping";
-            //else btnTestIsMapping.Text = "No Map";
+            this.Controls.Remove(pictureboxStart);
+            pictureboxStart.Dispose();
+            //panel1.SendToBack();
+            timer2.Enabled = false;
+            timer2.Dispose();
         }
 
-        public void GetHeadland()
+        public bool KeypadToNUD(NumericUpDown sender, Form owner)
         {
-            using (var form = new FormHeadland (this))
+            sender.BackColor = Color.Red;
+            sender.Value = Math.Round(sender.Value, sender.DecimalPlaces);
+
+            using (FormNumeric form = new FormNumeric((double)sender.Minimum, (double)sender.Maximum, (double)sender.Value))
             {
-                var result = form.ShowDialog();
+                DialogResult result = form.ShowDialog(owner);
                 if (result == DialogResult.OK)
                 {
+                    sender.Value = (decimal)form.ReturnValue;
+                    sender.BackColor = Color.AliceBlue;
+                    return true;
                 }
-            }
-
-            if (hd.headArr[0].hdLine.Count > 0)
-            {
-                hd.isOn = true;
-                btnHeadlandOnOff.Image = Properties.Resources.HeadlandOn;
-            }
-            else
-            {
-                hd.isOn = false;
-                btnHeadlandOnOff.Image = Properties.Resources.HeadlandOff;
-            }
-        }
-
-        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using (var form = new FormDisplayOptions(this))
-            {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
+                else if (result == DialogResult.Cancel)
                 {
+                    sender.BackColor = Color.AliceBlue;
                 }
+                return false;
             }
-
         }
 
-        private void colorsToolStripMenuItem_Click(object sender, EventArgs e)
+        public void KeyboardToText(TextBox sender, Form owner)
         {
-            using (var form = new FormColor(this))
+            sender.BackColor = Color.Red;
+            using (FormKeyboard form = new FormKeyboard(sender.Text))
             {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
+                if (form.ShowDialog(owner) == DialogResult.OK)
                 {
+                    sender.Text = form.ReturnString;
                 }
             }
-        }
-
-        private void stripSectionColor_Click(object sender, EventArgs e)
-        {
-            using (var form = new FormColorPicker(this, sectionColorDay))
-            {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    sectionColorDay = form.useThisColor;
-                }
-            }
-
-            Settings.Default.setDisplay_colorSectionsDay = sectionColorDay;
-            Settings.Default.Save();
-
-            stripSectionColor.BackColor = sectionColorDay;
-        }
-
-        private void keyboardToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            isKeyboardOn = !isKeyboardOn;
-            keyboardToolStripMenuItem1.Checked = isKeyboardOn;
-            Settings.Default.setDisplay_isKeyboardOn = isKeyboardOn;
-            Settings.Default.Save();
-        }
-
-        public void GetAB()
-        {
-            curve.isOkToAddPoints = false;
-
-            if (ct.isContourBtnOn) { if (ct.isContourBtnOn) btnContour.PerformClick(); }
-
-            using (var form = new FormABDraw(this))
-            {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                }
-                ABLine.moveDistance = 0;
-                curve.moveDistance = 0;
-            }
-
-            if (curve.isBtnCurveOn) btnCycleLines.Text = "Cu-" + curve.numCurveLineSelected;
-            if (ABLine.isBtnABLineOn) btnCycleLines.Text = "AB-" + ABLine.numABLineSelected;
-        }
-
-        public void KeypadToNUD(NumericUpDown sender)
-        {
-            NumericUpDown nud = (NumericUpDown)sender;
-            nud.BackColor = System.Drawing.Color.Red;
-            using (var form = new FormNumeric((double)nud.Minimum, (double)nud.Maximum, (double)nud.Value))
-            {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    nud.Value = (decimal)form.ReturnValue;
-                }
-            }
-            nud.BackColor = System.Drawing.Color.AliceBlue;
-        }
-
-        public void KeyboardToText(TextBox sender)
-        {
-            TextBox tbox = (TextBox)sender;
-            tbox.BackColor = System.Drawing.Color.Red;
-            using (var form = new FormKeyboard((string)tbox.Text))
-            {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    tbox.Text = (string)form.ReturnString;
-                }
-            }
-            tbox.BackColor = System.Drawing.Color.AliceBlue;
-        }
-
-
-        //show the communications window
-        private void SettingsCommunications()
-        {
-            using (var form = new FormCommSet(this))
-            {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    fixUpdateTime = 1 / (double)fixUpdateHz;
-                }
-            }
-            //SendSteerSettingsOutAutoSteerPort();
-            //SendArduinoSettingsOutToAutoSteerPort();
-        }
-
-        //show the UDP ethernet settings page
-        private void SettingsUDP()
-        {
-            using (var form = new FormUDP(this))
-            {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    //Clicked Save
-                    Application.Restart();
-                    Environment.Exit(0);
-                }
-                else
-                {
-                    //Clicked X - No Save
-                }
-            }
-        }
-
-        //show the UDP ethernet settings page
-        private void SettingsNTRIP()
-        {
-            using (var form = new FormNtrip(this))
-            {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    if (isNTRIP_Connected)
-                    {
-                        SettingsShutDownNTRIP();
-                    }
-                }
-                else
-                {
-                    //Clicked X - No Save
-                }
-            }
-        }
-
-        //function to set section positions
-        public void SectionSetPosition()
-        {
-            section[0].positionLeft = (double)Vehicle.Default.setSection_position1 + Vehicle.Default.setVehicle_toolOffset;
-            section[0].positionRight = (double)Vehicle.Default.setSection_position2 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[1].positionLeft = (double)Vehicle.Default.setSection_position2 + Vehicle.Default.setVehicle_toolOffset;
-            section[1].positionRight = (double)Vehicle.Default.setSection_position3 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[2].positionLeft = (double)Vehicle.Default.setSection_position3 + Vehicle.Default.setVehicle_toolOffset;
-            section[2].positionRight = (double)Vehicle.Default.setSection_position4 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[3].positionLeft = (double)Vehicle.Default.setSection_position4 + Vehicle.Default.setVehicle_toolOffset;
-            section[3].positionRight = (double)Vehicle.Default.setSection_position5 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[4].positionLeft = (double)Vehicle.Default.setSection_position5 + Vehicle.Default.setVehicle_toolOffset;
-            section[4].positionRight = (double)Vehicle.Default.setSection_position6 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[5].positionLeft = (double)Vehicle.Default.setSection_position6 + Vehicle.Default.setVehicle_toolOffset;
-            section[5].positionRight = (double)Vehicle.Default.setSection_position7 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[6].positionLeft = (double)Vehicle.Default.setSection_position7 + Vehicle.Default.setVehicle_toolOffset;
-            section[6].positionRight = (double)Vehicle.Default.setSection_position8 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[7].positionLeft = (double)Vehicle.Default.setSection_position8 + Vehicle.Default.setVehicle_toolOffset;
-            section[7].positionRight = (double)Vehicle.Default.setSection_position9 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[8].positionLeft = (double)Vehicle.Default.setSection_position9 + Vehicle.Default.setVehicle_toolOffset;
-            section[8].positionRight = (double)Vehicle.Default.setSection_position10 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[9].positionLeft = (double)Vehicle.Default.setSection_position10 + Vehicle.Default.setVehicle_toolOffset;
-            section[9].positionRight = (double)Vehicle.Default.setSection_position11 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[10].positionLeft = (double)Vehicle.Default.setSection_position11 + Vehicle.Default.setVehicle_toolOffset;
-            section[10].positionRight = (double)Vehicle.Default.setSection_position12 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[11].positionLeft = (double)Vehicle.Default.setSection_position12 + Vehicle.Default.setVehicle_toolOffset;
-            section[11].positionRight = (double)Vehicle.Default.setSection_position13 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[12].positionLeft = (double)Vehicle.Default.setSection_position13 + Vehicle.Default.setVehicle_toolOffset;
-            section[12].positionRight = (double)Vehicle.Default.setSection_position14 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[13].positionLeft = (double)Vehicle.Default.setSection_position14 + Vehicle.Default.setVehicle_toolOffset;
-            section[13].positionRight = (double)Vehicle.Default.setSection_position15 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[14].positionLeft = (double)Vehicle.Default.setSection_position15 + Vehicle.Default.setVehicle_toolOffset;
-            section[14].positionRight = (double)Vehicle.Default.setSection_position16 + Vehicle.Default.setVehicle_toolOffset;
-
-            section[15].positionLeft = (double)Vehicle.Default.setSection_position16 + Vehicle.Default.setVehicle_toolOffset;
-            section[15].positionRight = (double)Vehicle.Default.setSection_position17 + Vehicle.Default.setVehicle_toolOffset;
-        }
-
-        //function to calculate the width of each section and update
-        public void SectionCalcWidths()
-        {
-            for (int j = 0; j < MAXSECTIONS; j++)
-            {
-                section[j].sectionWidth = (section[j].positionRight - section[j].positionLeft);
-                section[j].rpSectionPosition = 250 + (int)(Math.Round(section[j].positionLeft * 10, 0, MidpointRounding.AwayFromZero));
-                section[j].rpSectionWidth = (int)(Math.Round(section[j].sectionWidth * 10, 0, MidpointRounding.AwayFromZero));
-            }
-
-            //calculate tool width based on extreme right and left values
-            tool.toolWidth = Math.Abs(section[0].positionLeft) + Math.Abs(section[tool.numOfSections - 1].positionRight);
-
-            //left and right tool position
-            tool.toolFarLeftPosition = section[0].positionLeft;
-            tool.toolFarRightPosition = section[tool.numOfSections - 1].positionRight;
-
-            //now do the full width section
-            section[tool.numOfSections].sectionWidth = tool.toolWidth;
-            section[tool.numOfSections].positionLeft = tool.toolFarLeftPosition;
-            section[tool.numOfSections].positionRight = tool.toolFarRightPosition;
-
-            //find the right side pixel position
-            tool.rpXPosition = 250 + (int)(Math.Round(tool.toolFarLeftPosition * 10, 0, MidpointRounding.AwayFromZero));
-            tool.rpWidth = (int)(Math.Round(tool.toolWidth * 10, 0, MidpointRounding.AwayFromZero));
+            sender.BackColor = Color.AliceBlue;
         }
 
         //request a new job
@@ -1377,22 +691,18 @@ namespace AgOpenGPS
                 oglZoom.Width = 300;
                 oglZoom.Height = 300;
             }
-                //isGPSPositionInitialized = false;
-                //offset = 0;
-                //pn.latStart = pn.latitude;
-                //pn.lonStart = pn.longitude;
 
-                //SendSteerSettingsOutAutoSteerPort();
+            //SendSteerSettingsOutAutoSteerPort();
             isJobStarted = true;
             startCounter = 0;
 
-            btnManualOffOn.Enabled = true;
+            btnSectionMasterManual.Enabled = true;
             manualBtnState = btnStates.Off;
-            btnManualOffOn.Image = Properties.Resources.ManualOff;
+            btnSectionMasterManual.Image = Properties.Resources.ManualOff;
 
-            btnSectionOffAutoOn.Enabled = true;
+            btnSectionMasterAuto.Enabled = true;
             autoBtnState = btnStates.Off;
-            btnSectionOffAutoOn.Image = Properties.Resources.SectionMasterOff;
+            btnSectionMasterAuto.Image = Properties.Resources.SectionMasterOff;
 
             btnSection1Man.BackColor = Color.Red;
             btnSection2Man.BackColor = Color.Red;
@@ -1428,11 +738,30 @@ namespace AgOpenGPS
             btnSection15Man.Enabled = true;
             btnSection16Man.Enabled = true;
 
+            btnZone1.BackColor = Color.Red;
+            btnZone2.BackColor = Color.Red;
+            btnZone3.BackColor = Color.Red;
+            btnZone4.BackColor = Color.Red;
+            btnZone5.BackColor = Color.Red;
+            btnZone6.BackColor = Color.Red;
+            btnZone7.BackColor = Color.Red;
+            btnZone8.BackColor = Color.Red;
+
+            btnZone1.Enabled = true;
+            btnZone2.Enabled = true;
+            btnZone3.Enabled = true;
+            btnZone4.Enabled = true;
+            btnZone5.Enabled = true;
+            btnZone6.Enabled = true;
+            btnZone7.Enabled = true;
+            btnZone8.Enabled = true;
+
 
             btnABLine.Enabled = true;
             btnContour.Enabled = true;
             btnCurve.Enabled = true;
-            btnMakeLinesFromBoundary.Enabled = true;
+            btnABDraw.Enabled = true;
+            btnCycleLines.Image = Properties.Resources.ABLineCycle;
             btnCycleLines.Enabled = true;
 
             ABLine.abHeading = 0.00;
@@ -1441,79 +770,106 @@ namespace AgOpenGPS
             DisableYouTurnButtons();
             btnFlag.Enabled = true;
 
-            btnContourPriority.Image = Properties.Resources.Snap2;
-
-            if (recPath.isRecordOn)
+            if (tool.isSectionsNotZones)
             {
-                recPath.isRecordOn = false;
+                LineUpIndividualSectionBtns();
             }
-
-            LineUpManualBtns();
+            else
+            {
+                LineUpAllZoneButtons();
+            }
 
             //update the menu
             this.menustripLanguage.Enabled = false;
-            layoutPanelRight.Enabled = true;
+            panelRight.Enabled = true;
             //boundaryToolStripBtn.Enabled = true;
-            toolStripBtnDropDownBoundaryTools.Enabled = true;
+
+            FieldMenuButtonEnableDisable(true);
+            FixPanelsAndMenus();
+            SetZoom();
         }
 
         //close the current job
         public void JobClose()
         {
+            recPath.resumeState = 0;
+            btnResumePath.Image = Properties.Resources.pathResumeStart;
+            recPath.currentPositonIndex = 0;
+
             //reset field offsets
-            pn.fixOffset.easting = 0;
-            pn.fixOffset.northing = 0;
+            if (!isKeepOffsetsOn)
+            {
+                pn.fixOffset.easting = 0;
+                pn.fixOffset.northing = 0;
+            }
 
             //turn off headland
-            hd.isOn = false;
+            bnd.isHeadlandOn = false;
             btnHeadlandOnOff.Image = Properties.Resources.HeadlandOff;
+            btnHeadlandOnOff.Visible = false;
+
+            recPath.recList.Clear();
+            recPath.StopDrivingRecordedPath();
+            panelDrag.Visible = false;  
 
             //make sure hydraulic lift is off
-            mc.machineData[mc.mdHydLift] = 0;
+            p_239.pgn[p_239.hydLift] = 0;
             vehicle.isHydLiftOn = false;
             btnHydLift.Image = Properties.Resources.HydraulicLiftOff;
+            btnHydLift.Visible = false;
 
             //zoom gone
             oglZoom.SendToBack();
 
             //clean all the lines
-            bnd.bndArr?.Clear();
-            gf.geoFenceArr?.Clear();
-            turn.turnArr?.Clear();
-            hd.headArr[0].hdLine?.Clear();
+            bnd.bndList.Clear();
 
-            layoutPanelRight.Enabled = false;
-            toolStripBtnDropDownBoundaryTools.Enabled = false;
+            panelRight.Enabled = false;
+            FieldMenuButtonEnableDisable(false);
 
             menustripLanguage.Enabled = true;
             isJobStarted = false;
 
-            //reset the lat lon start pos
-            pn.latStart = 0;
-            pn.lonStart = 0;
-
-            //turn section buttons all OFF
-            for (int j = 0; j < MAXSECTIONS; j++)
-            {
-                section[j].isAllowedOn = false;
-                section[j].manBtnState = manBtn.On;
-            }
-
             //fix ManualOffOnAuto buttons
-            btnManualOffOn.Enabled = false;
             manualBtnState = btnStates.Off;
-            btnManualOffOn.Image = Properties.Resources.ManualOff;
+            btnSectionMasterManual.Image = Properties.Resources.ManualOff;
 
             //fix auto button
-            btnSectionOffAutoOn.Enabled = false;
             autoBtnState = btnStates.Off;
-            btnSectionOffAutoOn.Image = Properties.Resources.SectionMasterOff;
+            btnSectionMasterAuto.Image = Properties.Resources.SectionMasterOff;
 
-            //Update the button colors and text
-            ManualAllBtnsUpdate();
+            if (tool.isSectionsNotZones)
+            {
+                //Update the button colors and text
+                AllSectionsAndButtonsToState(btnStates.Off);
 
-            //enable disable manual buttons
-            LineUpManualBtns();
+                //enable disable manual buttons
+                LineUpIndividualSectionBtns();
+            }
+            else
+            {
+                AllZonesAndButtonsToState(autoBtnState);
+                LineUpAllZoneButtons();
+            }
+
+            btnZone1.BackColor = Color.Silver;
+            btnZone2.BackColor = Color.Silver;
+            btnZone3.BackColor = Color.Silver;
+            btnZone4.BackColor = Color.Silver;
+            btnZone5.BackColor = Color.Silver;
+            btnZone6.BackColor = Color.Silver;
+            btnZone7.BackColor = Color.Silver;
+            btnZone8.BackColor = Color.Silver;
+
+            btnZone1.Enabled = false;
+            btnZone2.Enabled = false;
+            btnZone3.Enabled = false;
+            btnZone4.Enabled = false;
+            btnZone5.Enabled = false;
+            btnZone6.Enabled = false;
+            btnZone7.Enabled = false;
+            btnZone8.Enabled = false;
+
 
             btnSection1Man.Enabled = false;
             btnSection2Man.Enabled = false;
@@ -1550,16 +906,18 @@ namespace AgOpenGPS
             btnSection16Man.BackColor = Color.Silver;
 
             //clear the section lists
-            for (int j = 0; j < MAXSECTIONS; j++)
+            for (int j = 0; j < triStrip.Count; j++)
             {
                 //clean out the lists
-                section[j].patchList?.Clear();
-                section[j].triangleList?.Clear();
+                triStrip[j].patchList?.Clear();
+                triStrip[j].triangleList?.Clear();
             }
+
+            triStrip?.Clear();
+            triStrip.Add(new CPatches(this));
 
             //clear the flags
             flagPts.Clear();
-            btnFlag.Enabled = false;
 
             //ABLine
             btnABLine.Enabled = false;
@@ -1568,8 +926,7 @@ namespace AgOpenGPS
             ABLine.DeleteAB();
             ABLine.lineArr?.Clear();
             ABLine.numABLineSelected = 0;
-            ABLine.tramArr?.Clear();
-            ABLine.tramList?.Clear();
+            tram.tramList?.Clear();
 
             //curve line
             btnCurve.Enabled = false;
@@ -1579,23 +936,23 @@ namespace AgOpenGPS
             curve.ResetCurveLine();
             curve.curveArr?.Clear();
             curve.numCurveLineSelected = 0;
-            curve.tramArr?.Clear();
-            curve.tramList?.Clear();
 
             //clean up tram
             tram.displayMode = 0;
-            tram.outArr?.Clear();
+            tram.tramBndInnerArr?.Clear();
+            tram.tramBndOuterArr?.Clear();
 
             //clear out contour and Lists
             btnContour.Enabled = false;
             //btnContourPriority.Enabled = false;
-            btnContourPriority.Image = Properties.Resources.Snap2;
+            btnSnapToPivot.Image = Properties.Resources.SnapToPivot;
             ct.ResetContour();
             ct.isContourBtnOn = false;
             btnContour.Image = Properties.Resources.ContourOff;
             ct.isContourOn = false;
 
-            btnMakeLinesFromBoundary.Enabled = false;
+            btnABDraw.Enabled = false;
+            btnCycleLines.Image = Properties.Resources.ABLineCycle;
             btnCycleLines.Enabled = false;
 
             //AutoSteer
@@ -1607,359 +964,79 @@ namespace AgOpenGPS
             yt.isYouTurnBtnOn = false;
             btnAutoYouTurn.Image = Properties.Resources.YouTurnNo;
             btnAutoYouTurn.Enabled = false;
+
+            btnABDraw.Visible = false;
+
             yt.ResetYouTurn();
             DisableYouTurnButtons();
 
             //reset acre and distance counters
             fd.workedAreaTotal = 0;
 
-            //reset boundaries
-            bnd.ResetBoundaries();
-
-            //reset turn lines
-            turn.ResetTurnLines();
-
             //reset GUI areas
             fd.UpdateFieldBoundaryGUIAreas();
 
-            ////turn off path record
+            displayFieldName = gStr.gsNone;
+            FixTramModeButton();
+
             recPath.recList?.Clear();
-            if (recPath.isRecordOn)
+            recPath.shortestDubinsList?.Clear();
+            recPath.shuttleDubinsList?.Clear();
+
+            FixPanelsAndMenus();
+            SetZoom();
+            worldGrid.isGeoMap = false;
+
+            using (Bitmap bitmap = Properties.Resources.z_bingMap)
             {
-                recPath.isRecordOn = false;
-                recordPathMenu.Image = Properties.Resources.BoundaryRecord;
-            }
-
-            //reset all Port Module values
-            mc.ResetAllModuleCommValues();
-        }
-
-        //bring up field dialog for new/open/resume
-        private void JobNewOpenResume()
-        {
-            //bring up dialog if no job active, close job if one is
-            if (!isJobStarted)
-            {
-                //if (toolStripBtnGPSStength.Image.Height == 64)
-                //{
-                //    var form = new FormTimedMessage(3000, gStr.gsNoGPS, gStr.gsGPSSourceOff);
-                //    form.Show();
-                //    return;
-                //}
-
-                using (var form = new FormJob(this))
-                {
-                    var result = form.ShowDialog();
-                    if (result == DialogResult.Yes)
-                    {
-                        //ask for a directory name
-                        using (var form2 = new FormFieldDir(this))
-                        { form2.ShowDialog(); }
-                    }
-                }
-
-                Text = "AgOpenGPS - " + currentFieldDirectory;
-
-                if (isJobStarted)
-                {
-                    layoutPanelRight.Enabled = true;
-                    //boundaryToolStripBtn.Enabled = true;
-                    toolStripBtnDropDownBoundaryTools.Enabled = true;
-                }
-                else
-                {
-                    layoutPanelRight.Enabled = false;
-                    //boundaryToolStripBtn.Enabled = false;
-                    toolStripBtnDropDownBoundaryTools.Enabled = false;
-                }
-            }
-
-            //close the current job and ask how to or if to save
-            else
-            {
-                bool closing = false;
-                int choice = SaveOrNot(closing);
-                switch (choice)
-                {
-                    //OK
-                    case 0:
-                        Settings.Default.setF_CurrentDir = currentFieldDirectory;
-                        Settings.Default.Save();
-                        FileSaveEverythingBeforeClosingField();
-                        layoutPanelRight.Enabled = false;
-                        //boundaryToolStripBtn.Enabled = false;
-                        toolStripBtnDropDownBoundaryTools.Enabled = false;
-                        break;
-
-                    //Ignore and return
-                    case 1:
-                        break;
-
-                    //Save As
-                    case 2:
-                        //close current field but remember last used like normal
-                        Settings.Default.setF_CurrentDir = currentFieldDirectory;
-                        Settings.Default.Save();
-                        FileSaveEverythingBeforeClosingField();
-                        layoutPanelRight.Enabled = false;
-                        //boundaryToolStripBtn.Enabled = false;
-                        toolStripBtnDropDownBoundaryTools.Enabled = false;
-
-                        //ask for a directory name
-                        using (var form2 = new FormSaveAs(this))
-                        {
-                            form2.ShowDialog();
-                        }
-
-                        break;
-                }
-            }
-            //update GUI areas
-        }
-
-        //Does the logic to process section on off requests
-        private void ProcessSectionOnOffRequests()
-        {
-            {
-                for (int j = 0; j < tool.numOfSections + 1; j++)
-                {
-                    //SECTIONS - 
-
-
-                    if (section[j].sectionOnRequest)
-                        section[j].isSectionOn = true;
-
-                    if (!section[j].sectionOffRequest) section[j].sectionOffTimer = (int)((double)fixUpdateHz * tool.turnOffDelay);
-
-                    if (section[j].sectionOffTimer > 0) section[j].sectionOffTimer--;
-
-                    if (section[j].sectionOffRequest & section[j].sectionOffTimer == 0)
-                    {
-                        if (section[j].isSectionOn) section[j].isSectionOn = false;
-                    }
-
-                    //MAPPING - 
-
-                    //easy just turn it on
-                    if (section[j].mappingOnRequest)
-                    {
-                        if (!section[j].isMappingOn && isMapping) section[j].TurnMappingOn(); //**************************************** un comment to enable mappping again
-                    }
-
-                    //turn off
-                    double sped = 1 / ((pn.speed+5) * 0.2);
-                    if (sped < 0.2) sped = 0.2;
-
-                    //keep setting the timer so full when ready to turn off
-                    if (!section[j].mappingOffRequest)
-                        section[j].mappingOffTimer = (int)(fixUpdateHz * 1 * sped + ((double)fixUpdateHz * tool.turnOffDelay));
-
-                    //decrement the off timer
-                    if (section[j].mappingOffTimer > 0) section[j].mappingOffTimer--;
-
-                    //if Off mapping timer is zero, turn off the section, reset everything
-                    if (section[j].mappingOffTimer == 0 && section[j].mappingOffRequest)
-                    {
-                        if (section[j].isMappingOn) section[j].TurnMappingOff();
-                        section[j].mappingOffRequest = false;
-                    }
-
-                    #region notes
-                    //Turn ON
-                    //if requested to be on, set the timer to Max 10 (1 seconds) = 10 frames per second
-                    //if (section[j].sectionOnRequest && !section[j].sectionOnOffCycle)
-                    //{
-                    //    section[j].sectionOnTimer = (int)(pn.speed * section[j].lookAheadOn) + 1;
-                    //    if (section[j].sectionOnTimer > fixUpdateHz + 3) section[j].sectionOnTimer = fixUpdateHz + 3;
-                    //    section[j].sectionOnOffCycle = true;
-                    //}
-
-                    ////reset the ON request
-                    //section[j].sectionOnRequest = false;
-
-                    ////decrement the timer if not zero
-                    //if (section[j].sectionOnTimer > 0)
-                    //{
-                    //    //turn the section ON if not and decrement timer
-                    //    section[j].sectionOnTimer--;
-                    //    if (!section[j].isSectionOn) section[j].isSectionOn = true;
-
-                    //    //keep resetting the section OFF timer while the ON is active
-                    //    //section[j].sectionOffTimer = (int)(fixUpdateHz * tool.toolTurnOffDelay);
-                    //}
-                    //if (!section[j].sectionOffRequest) 
-                    //    section[j].sectionOffTimer = (int)(fixUpdateHz * tool.turnOffDelay);
-
-                    ////decrement the off timer
-                    //if (section[j].sectionOffTimer > 0 && section[j].sectionOnTimer == 0) section[j].sectionOffTimer--;
-
-                    ////Turn OFF
-                    ////if Off section timer is zero, turn off the section
-                    //if (section[j].sectionOffTimer == 0 && section[j].sectionOnTimer == 0 && section[j].sectionOffRequest)
-                    //{
-                    //    if (section[j].isSectionOn) section[j].isSectionOn = false;
-                    //    //section[j].sectionOnOffCycle = false;
-                    //    section[j].sectionOffRequest = false;
-                    //    //}
-                    //}
-                    //Turn ON
-                    //if requested to be on, set the timer to Max 10 (1 seconds) = 10 frames per second
-                    //if (section[j].mappingOnRequest && !section[j].mappingOnOffCycle)
-                    //{
-                    //    section[j].mappingOnTimer = (int)(fixUpdateHz * 1) + 1;
-                    //    section[j].mappingOnOffCycle = true;
-                    //}
-
-                    ////reset the ON request
-                    //section[j].mappingOnRequest = false;
-
-                    //decrement the timer if not zero
-                    #endregion notes
-                }
+                GL.GenTextures(1, out texture[20]);
+                GL.BindTexture(TextureTarget.Texture2D, texture[20]);
+                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmapData.Width, bitmapData.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bitmapData.Scan0);
+                bitmap.UnlockBits(bitmapData);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 9729);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 9729);
             }
         }
 
-        //called by you turn class to set control byte, click auto man buttons
-        public void DoYouTurnSequenceEvent(int function, int action)
+        public void FieldMenuButtonEnableDisable(bool isOn)
         {
-            switch (function)
-            {
-                case 0: //should not be here - it means no function at all
-                    TimedMessageBox(2000, "ID 0 ??????", "YouTurn fucked up");
-                    break;
+            SmoothABtoolStripMenu.Enabled = isOn;
+            //toolStripBtnMakeBndContour.Enabled = isOn;
+            boundariesToolStripMenuItem.Enabled = isOn;
+            headlandToolStripMenuItem.Enabled = isOn;
+            deleteContourPathsToolStripMenuItem.Enabled = isOn;
+            tramLinesMenuField.Enabled = isOn;
+            recordedPathStripMenu.Enabled = isOn;
+            btnABDraw.Enabled = isOn;
+            btnFlag.Visible = isOn;
 
-                case 1: //Manual button
-                    if (action == 0) //turn auto off
-                    {
-                        if (manualBtnState != btnStates.Off)
-                        {
-                            btnManualOffOn.PerformClick();
-                        }
-                    }
-                    else
-                    {
-                        if (manualBtnState != btnStates.On)
-                        {
-                            btnManualOffOn.PerformClick();
-                        }
-                    }
-                    break;
+            panelRight.Visible = isOn;
+            panelAB.Visible = isOn;
 
-                case 2: //Auto Button
-                    if (action == 0) //turn auto off
-                    {
-                        if (autoBtnState != btnStates.Off)
-                        {
-                            btnSectionOffAutoOn.PerformClick();
-                        }
-                    }
-                    else
-                    {
-                        if (autoBtnState != btnStates.Auto)
-                        {
-                            btnSectionOffAutoOn.PerformClick();
-                        }
-                    }
-                    break;
+            lblFieldStatus.Visible = isOn;
+            //lblFieldDataTopField.Visible = isOn;
+            //lblFieldDataTopDone.Visible = isOn;
+            //lblFieldDataTopRemain.Visible = isOn;
 
-                case 3: //Machine 1
-                    if (action == 0)
-                    {
-                        TimedMessageBox(1000, seq.pos3, gStr.gsTurnOff);
-                        mc.machineData[mc.mdUTurn] &= 0b11111110;
-                    }
-                    else
-                    {
-                        TimedMessageBox(1000, seq.pos3, gStr.gsTurnOn);
-                        mc.machineData[mc.mdUTurn] |= 0b00000001;
-                    }
-                    break;
-
-                case 4: //Machine 2
-                    if (action == 0)
-                    {
-                        TimedMessageBox(1000, seq.pos4, gStr.gsTurnOff);
-                        mc.machineData[mc.mdUTurn] &= 0b11111101;
-                    }
-                    else
-                    {
-                        TimedMessageBox(1000, seq.pos4, gStr.gsTurnOn);
-                        mc.machineData[mc.mdUTurn] |= 0b00000010;
-                    }
-                    break;
-
-                case 5: //Machine 3
-                    if (action == 0)
-                    {
-                        TimedMessageBox(1000, seq.pos5, gStr.gsTurnOff);
-                        mc.machineData[mc.mdUTurn] &= 0b11111011;
-                    }
-                    else
-                    {
-                        TimedMessageBox(1000, seq.pos5, gStr.gsTurnOn);
-                        mc.machineData[mc.mdUTurn] |= 0b00000100;
-                    }
-                    break;
-
-                case 6: //Machine 4
-                    if (action == 0)
-                    {
-                        TimedMessageBox(1000, seq.pos6, gStr.gsTurnOff);
-                        mc.machineData[mc.mdUTurn] &= 0b11110111;
-                    }
-                    else
-                    {
-                        TimedMessageBox(1000, seq.pos6, gStr.gsTurnOn);
-                        mc.machineData[mc.mdUTurn] |= 0b00001000;
-                    }
-                    break;
-
-                case 7: //Machine 5
-                    if (action == 0)
-                    {
-                        TimedMessageBox(1000, seq.pos7, gStr.gsTurnOff);
-                        mc.machineData[mc.mdUTurn] &= 0b11101111;
-                    }
-                    else
-                    {
-                        TimedMessageBox(1000, seq.pos7, gStr.gsTurnOn);
-                        mc.machineData[mc.mdUTurn] |= 0b00010000;
-                    }
-                    break;
-
-                case 8: //Machine 6
-                    if (action == 0)
-                    {
-                        TimedMessageBox(1000, seq.pos8, gStr.gsTurnOff);
-                        mc.machineData[mc.mdUTurn] &= 0b11011111;
-                    }
-                    else
-                    {
-                        TimedMessageBox(1000, seq.pos8, gStr.gsTurnOn);
-                        mc.machineData[mc.mdUTurn] |= 0b00100000;
-                    }
-                    break;
-            }
-
-            //load the autosteer youturn byte also.
-            //mc.autoSteerData[mc.sdYouTurnByte] = mc.machineControlData[mc.cnYouTurn];
+            btnSnapToPivot.Visible = false;
+            cboxpRowWidth.Visible = false;
+            btnYouSkipEnable.Visible = false;
         }
 
         //take the distance from object and convert to camera data
         public void SetZoom()
         {
             //match grid to cam distance and redo perspective
-            if (camera.camSetDistance <= -20000) camera.gridZoom = 2000;
-            else if (camera.camSetDistance >= -20000 && camera.camSetDistance < -10000) camera.gridZoom = 2012*2;
-            else if (camera.camSetDistance >= -10000 && camera.camSetDistance < -5000) camera.gridZoom = 1006 *2;
-            else if (camera.camSetDistance >= -5000 && camera.camSetDistance < -2000) camera.gridZoom = 503 *2;
-            else if (camera.camSetDistance >= -2000 && camera.camSetDistance < -1000) camera.gridZoom = 201.2 *2;
-            else if (camera.camSetDistance >= -1000 && camera.camSetDistance < -500) camera.gridZoom = 100.6 *2;
-            else if (camera.camSetDistance >= -500 && camera.camSetDistance < -250) camera.gridZoom = 50.3 *2;
-            else if (camera.camSetDistance >= -250 && camera.camSetDistance < -150) camera.gridZoom = 25.15 *2;
-            else if (camera.camSetDistance >= -150 && camera.camSetDistance < -50) camera.gridZoom = 10.06 *2;
-            else if (camera.camSetDistance >= -50 && camera.camSetDistance < -1) camera.gridZoom = 5.03 *2;
-            //1.216 2.532
+            if (camera.camSetDistance > -50 ) camera.gridZoom = 10;
+            else if (camera.camSetDistance > -150 ) camera.gridZoom = 20;
+            else if (camera.camSetDistance > -250 ) camera.gridZoom = 40;
+            else if (camera.camSetDistance > -500 ) camera.gridZoom = 80;
+            else if (camera.camSetDistance > -1000) camera.gridZoom = 160;
+            else if (camera.camSetDistance > -2000) camera.gridZoom = 320;
+            else if (camera.camSetDistance > -5000) camera.gridZoom = 640;
+            else if (camera.camSetDistance > -10000) camera.gridZoom = 1280;
+            else if (camera.camSetDistance > -20000) camera.gridZoom = 2000;
 
             oglMain.MakeCurrent();
             GL.MatrixMode(MatrixMode.Projection);
@@ -1973,14 +1050,19 @@ namespace AgOpenGPS
         private void FileSaveEverythingBeforeClosingField()
         {
             //turn off contour line if on
-            if (ct.isContourOn) ct.StopContourLine(pivotAxlePos);
+            if (ct.isContourOn) ct.StopContourLine();
 
             //turn off all the sections
-            for (int j = 0; j < tool.numOfSections + 1; j++)
+            for (int j = 0; j < tool.numOfSections; j++)
             {
-                if (section[j].isMappingOn) section[j].TurnMappingOff();
                 section[j].sectionOnOffCycle = false;
                 section[j].sectionOffRequest = false;
+            }
+
+            //turn off patching
+            for (int j = 0; j < triStrip.Count; j++)
+            {
+                if (triStrip[j].isDrawing) triStrip[j].TurnMappingOff();
             }
 
             //FileSaveHeadland();
@@ -2015,11 +1097,23 @@ namespace AgOpenGPS
         //message box pops up with info then goes away
         public void TimedMessageBox(int timeout, string s1, string s2)
         {
-            var form = new FormTimedMessage(timeout, s1, s2);
-            form.Show();
+            FormTimedMessage form = new FormTimedMessage(timeout, s1, s2);
+            form.Show(this);
         }
+    
     }//class FormGPS
+
 }//namespace AgOpenGPS
+
+        // Generates a random number within a range.       
+        //public double RandomNumber(double min, double max)
+        //{
+        //    return min + _random.NextDouble() * (max - min);
+        //}
+
+        //private readonly Random _random = new Random();
+
+        //form is closing so tidy up and save settings
 
 /*The order is:
  *

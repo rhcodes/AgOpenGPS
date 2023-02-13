@@ -32,15 +32,21 @@ namespace AgOpenGPS
             // Add a link to the LinkLabel.
             LinkLabel.Link linkCf = new LinkLabel.Link
             {
-                LinkData = "https://agopengps.discourse.forum"
+                LinkData = "https://discourse.agopengps.com/"
             };
             linkLabelCombineForum.Links.Add(linkCf);
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            Properties.Settings.Default.setDisplay_isTermsOn = true;
+            Properties.Settings.Default.setDisplay_isTermsAccepted = true;
             Properties.Settings.Default.Save();
+        }
+
+        private void btnVideo_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(gStr.v_AboutIntro))
+                System.Diagnostics.Process.Start(gStr.v_AboutIntro);
         }
     }
 }

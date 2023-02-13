@@ -4,12 +4,28 @@ using System;
 
 namespace AgOpenGPS
 {
+    public struct vecRGB
+    {
+        public byte red;
+        public byte grn;
+        public byte blu;
+        public byte alpha;
+
+        public vecRGB(byte red, byte grn, byte blu, byte alpha)
+        {
+            this.red = red;
+            this.grn = grn;
+            this.blu = blu;
+            this.alpha = alpha;
+        }
+    }
+
     /// <summary>
     /// Represents a three dimensional vector.
     /// </summary>
     ///
 
-    public struct vec3
+        public struct vec3
     {
         public double easting;
         public double northing;
@@ -74,6 +90,24 @@ namespace AgOpenGPS
         //    return (lhs.x != rhs.x && lhs.z != rhs.z && lhs.h != rhs.h);
         //}
     }
+
+
+    public struct vecFix2Fix
+    {
+        public double easting; //easting
+        public double distance; //distance since last point
+        public double northing; //norting
+        public int isSet;    //altitude
+
+        public vecFix2Fix(double _easting, double _northing, double _distance, int _isSet)
+        {
+            this.easting = _easting;
+            this.distance = _distance;
+            this.northing = _northing;
+            this.isSet = _isSet;
+        }
+    }
+
 
     //
 

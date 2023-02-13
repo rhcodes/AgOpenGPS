@@ -1,6 +1,6 @@
-﻿using System;
+﻿using OpenTK.Graphics.OpenGL;
+using System;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL;
 
 namespace AgOpenGPS
 {
@@ -12,193 +12,185 @@ namespace AgOpenGPS
         //the list of constants and multiples of the boundary
         public List<vec2> calcList = new List<vec2>();
 
-        //the outer ring of boundary tram - also used for clipping
-        public List<vec3> outArr = new List<vec3>();
-
         //the triangle strip of the outer tram highlight
-        public List<vec2> tramBndArr = new List<vec2>();
+        public List<vec2> tramBndOuterArr = new List<vec2>();
+        public List<vec2> tramBndInnerArr = new List<vec2>();
 
         //tram settings
-        public double wheelTrack;
-        public double tramWidth, abOffset;
+        //public double wheelTrack;
+        public double tramWidth;
         public double halfWheelTrack;
         public int passes;
+        public bool isOuter;
+
+        //tramlines
+        public List<vec2> tramArr = new List<vec2>();
+        public List<List<vec2>> tramList = new List<List<vec2>>();
+
 
         // 0 off, 1 All, 2, Lines, 3 Outer
         public int displayMode;
+        internal int controlByte;
 
         public CTram(FormGPS _f)
         {
             //constructor
             mf = _f;
 
-            tramWidth = Properties.Settings.Default.setTram_eqWidth;
-            wheelTrack = Properties.Settings.Default.setTram_wheelSpacing;
-            halfWheelTrack = wheelTrack * 0.5;
+            tramWidth = Properties.Settings.Default.setTram_tramWidth;
+            //halfTramWidth = (Math.Round((Properties.Settings.Default.setTram_tramWidth) / 2.0, 3));
+
+            halfWheelTrack = Properties.Settings.Default.setVehicle_trackWidth * 0.5;
+
+            isOuter = ((int)(tramWidth / mf.tool.width + 0.5)) % 2 == 0;
 
             passes = Properties.Settings.Default.setTram_passes;
-            abOffset = (Math.Round((mf.tool.toolWidth - mf.tool.toolOverlap) / 2.0, 3));
             displayMode = 0;
         }
 
-        public void DrawTramBnd()
+        public void DrawTram()
         {
-            if (tramBndArr.Count > 0)
+            if (mf.camera.camSetDistance > -250) GL.LineWidth(4);
+            else GL.LineWidth(2);
+
+            GL.Color4(0.30f, 0.93692f, 0.7520f, 0.3);
+
+            if (mf.tram.displayMode == 1 || mf.tram.displayMode == 2)
             {
-                GL.Color4(0.8630f, 0.73692f, 0.60f, 0.25);
-                GL.Begin(PrimitiveType.TriangleStrip);
-                for (int h = 0; h < tramBndArr.Count; h++) GL.Vertex3(tramBndArr[h].easting, tramBndArr[h].northing, 0);
-                GL.End();
+                if (tramList.Count > 0)
+                {
+                    for (int i = 0; i < tramList.Count; i++)
+                    {
+                        GL.Begin(PrimitiveType.LineStrip);
+                        for (int h = 0; h < tramList[i].Count; h++)
+                            GL.Vertex3(tramList[i][h].easting, tramList[i][h].northing, 0);
+                        GL.End();
+                    }
+                }
+            }
+
+            if (mf.tram.displayMode == 1 || mf.tram.displayMode == 3)
+            {
+                if (tramBndOuterArr.Count > 0)
+                {
+                    GL.Begin(PrimitiveType.LineStrip);
+                    for (int h = 0; h < tramBndOuterArr.Count; h++) GL.Vertex3(tramBndOuterArr[h].easting, tramBndOuterArr[h].northing, 0);
+                    GL.End();
+                    GL.Begin(PrimitiveType.LineStrip);
+                    for (int h = 0; h < tramBndInnerArr.Count; h++) GL.Vertex3(tramBndInnerArr[h].easting, tramBndInnerArr[h].northing, 0);
+                    GL.End();
+                }
             }
         }
 
         public void BuildTramBnd()
         {
-            //abOffset = (Math.Round((mf.tool.toolWidth - mf.tool.toolOverlap) / 2.0, 3));
-
-            bool isBndExist = mf.bnd.bndArr.Count != 0;
+            bool isBndExist = mf.bnd.bndList.Count != 0;
 
             if (isBndExist)
             {
-                CreateBndTramRef();
-                CreateOuterTram();
-                PreCalcTurnLines();
+                CreateBndOuterTramTrack();
+                CreateBndInnerTramTrack();
             }
             else
             {
-                outArr?.Clear();
-                tramBndArr?.Clear();
+                tramBndOuterArr?.Clear();
+                tramBndInnerArr?.Clear();
             }
         }
 
-        public void CreateBndTramRef()
+        private void CreateBndInnerTramTrack()
         {
             //count the points from the boundary
-            int ptCount = mf.bnd.bndArr[0].bndLine.Count;
-            outArr?.Clear();
+            int ptCount = mf.bnd.bndList[0].fenceLine.Count;
+            tramBndInnerArr?.Clear();
 
             //outside point
-            vec3 pt3 = new vec3();
+            vec2 pt3 = new vec2();
 
-            double distSq = ((tramWidth * 0.5) - halfWheelTrack) * ((tramWidth * 0.5) - halfWheelTrack) * 0.97;
-            bool fail = false;
+            double distSq = ((tramWidth * 0.5) + halfWheelTrack) * ((tramWidth * 0.5) + halfWheelTrack) * 0.999;
 
             //make the boundary tram outer array
             for (int i = 0; i < ptCount; i++)
             {
                 //calculate the point inside the boundary
-                pt3.easting = mf.bnd.bndArr[0].bndLine[i].easting -
-                    (Math.Sin(glm.PIBy2 + mf.bnd.bndArr[0].bndLine[i].heading) * (tramWidth * 0.5 - halfWheelTrack));
+                pt3.easting = mf.bnd.bndList[0].fenceLine[i].easting -
+                    (Math.Sin(glm.PIBy2 + mf.bnd.bndList[0].fenceLine[i].heading) * (tramWidth * 0.5 + halfWheelTrack));
 
-                pt3.northing = mf.bnd.bndArr[0].bndLine[i].northing -
-                    (Math.Cos(glm.PIBy2 + mf.bnd.bndArr[0].bndLine[i].heading) * (tramWidth * 0.5 - halfWheelTrack));
+                pt3.northing = mf.bnd.bndList[0].fenceLine[i].northing -
+                    (Math.Cos(glm.PIBy2 + mf.bnd.bndList[0].fenceLine[i].heading) * (tramWidth * 0.5 + halfWheelTrack));
+
+                bool Add = true;
 
                 for (int j = 0; j < ptCount; j++)
                 {
                     double check = glm.DistanceSquared(pt3.northing, pt3.easting,
-                                        mf.bnd.bndArr[0].bndLine[j].northing, mf.bnd.bndArr[0].bndLine[j].easting);
+                                        mf.bnd.bndList[0].fenceLine[j].northing, mf.bnd.bndList[0].fenceLine[j].easting);
                     if (check < distSq)
                     {
-                        fail = true;
+                        Add = false;
                         break;
                     }
                 }
 
-                if (!fail)
+                if (Add)
                 {
-                    pt3.heading = mf.bnd.bndArr[0].bndLine[i].heading;
-                    outArr.Add(pt3);
-                }
-                fail = false;
-            }
-
-            int cnt = outArr.Count;
-            if (cnt < 6) return;
-
-            const double spacing = 2.0;
-            double distance;
-            for (int i = 0; i < cnt - 1; i++)
-            {
-                distance = glm.Distance(outArr[i], outArr[i + 1]);
-                if (distance < spacing)
-                {
-                    outArr.RemoveAt(i + 1);
-                    cnt = outArr.Count;
-                    i--;
+                    if (tramBndInnerArr.Count > 0)
+                    {
+                        double dist = ((pt3.easting - tramBndInnerArr[tramBndInnerArr.Count - 1].easting) * (pt3.easting - tramBndInnerArr[tramBndInnerArr.Count - 1].easting))
+                            + ((pt3.northing - tramBndInnerArr[tramBndInnerArr.Count - 1].northing) * (pt3.northing - tramBndInnerArr[tramBndInnerArr.Count - 1].northing));
+                        if (dist > 1)
+                            tramBndInnerArr.Add(pt3);
+                    }
+                    else tramBndInnerArr.Add(pt3);
                 }
             }
         }
 
-        public void CreateOuterTram()
+        public void CreateBndOuterTramTrack()
         {
-            //build the outer boundary
-            tramBndArr?.Clear();
+            //count the points from the boundary
+            int ptCount = mf.bnd.bndList[0].fenceLine.Count;
+            tramBndOuterArr?.Clear();
 
-            int cnt = mf.tram.outArr.Count;
+            //outside point
+            vec2 pt3 = new vec2();
 
-            if (cnt > 0)
+            double distSq = ((tramWidth * 0.5) - halfWheelTrack) * ((tramWidth * 0.5) - halfWheelTrack) * 0.999;
+
+            //make the boundary tram outer array
+            for (int i = 0; i < ptCount; i++)
             {
-                vec2 pt = new vec2();
-                vec2 pt2 = new vec2();
+                //calculate the point inside the boundary
+                pt3.easting = mf.bnd.bndList[0].fenceLine[i].easting -
+                    (Math.Sin(glm.PIBy2 + mf.bnd.bndList[0].fenceLine[i].heading) * (tramWidth * 0.5 - halfWheelTrack));
 
-                for (int i = 0; i < cnt; i++)
+                pt3.northing = mf.bnd.bndList[0].fenceLine[i].northing -
+                    (Math.Cos(glm.PIBy2 + mf.bnd.bndList[0].fenceLine[i].heading) * (tramWidth * 0.5 - halfWheelTrack));
+
+                bool Add = true;
+
+                for (int j = 0; j < ptCount; j++)
                 {
-                    pt.easting = mf.tram.outArr[i].easting;
-                    pt.northing = mf.tram.outArr[i].northing;
-                    tramBndArr.Add(pt);
-
-                    pt2.easting = mf.tram.outArr[i].easting -
-                        (Math.Sin(glm.PIBy2 + mf.tram.outArr[i].heading) * mf.tram.wheelTrack);
-
-                    pt2.northing = mf.tram.outArr[i].northing -
-                        (Math.Cos(glm.PIBy2 + mf.tram.outArr[i].heading) * mf.tram.wheelTrack);
-                    tramBndArr.Add(pt2);
+                    double check = glm.DistanceSquared(pt3.northing, pt3.easting,
+                                        mf.bnd.bndList[0].fenceLine[j].northing, mf.bnd.bndList[0].fenceLine[j].easting);
+                    if (check < distSq)
+                    {
+                        Add = false;
+                        break;
+                    }
                 }
-            }
-        }
 
-        public bool IsPointInTramBndArea(vec2 testPointv2)
-        {
-            if (calcList.Count < 3) return false;
-            int j = outArr.Count - 1;
-            bool oddNodes = false;
-
-            //test against the constant and multiples list the test point
-            for (int i = 0; i < outArr.Count; j = i++)
-            {
-                if ((outArr[i].northing < testPointv2.northing && outArr[j].northing >= testPointv2.northing)
-                ||  (outArr[j].northing < testPointv2.northing && outArr[i].northing >= testPointv2.northing))
+                if (Add)
                 {
-                    oddNodes ^= ((testPointv2.northing * calcList[i].northing) + calcList[i].easting < testPointv2.easting);
-                }
-            }
-            return oddNodes; //true means inside.
-        }
-
-        public void PreCalcTurnLines()
-        {
-            int j = outArr.Count - 1;
-            //clear the list, constant is easting, multiple is northing
-            calcList.Clear();
-            vec2 constantMultiple = new vec2(0, 0);
-
-            for (int i = 0; i < outArr.Count; j = i++)
-            {
-                //check for divide by zero
-                if (Math.Abs(outArr[i].northing - outArr[j].northing) < double.Epsilon)
-                {
-                    constantMultiple.easting = outArr[i].easting;
-                    constantMultiple.northing = 0;
-                    calcList.Add(constantMultiple);
-                }
-                else
-                {
-                    //determine constant and multiple and add to list
-                    constantMultiple.easting = outArr[i].easting - ((outArr[i].northing * outArr[j].easting)
-                                    / (outArr[j].northing - outArr[i].northing)) + ((outArr[i].northing * outArr[i].easting)
-                                        / (outArr[j].northing - outArr[i].northing));
-                    constantMultiple.northing = (outArr[j].easting - outArr[i].easting) / (outArr[j].northing - outArr[i].northing);
-                    calcList.Add(constantMultiple);
+                    if (tramBndOuterArr.Count > 0)
+                    {
+                        double dist = ((pt3.easting - tramBndOuterArr[tramBndOuterArr.Count - 1].easting) * (pt3.easting - tramBndOuterArr[tramBndOuterArr.Count - 1].easting))
+                            + ((pt3.northing - tramBndOuterArr[tramBndOuterArr.Count - 1].northing) * (pt3.northing - tramBndOuterArr[tramBndOuterArr.Count - 1].northing));
+                        if (dist > 1)
+                            tramBndOuterArr.Add(pt3);
+                    }
+                    else tramBndOuterArr.Add(pt3);
                 }
             }
         }

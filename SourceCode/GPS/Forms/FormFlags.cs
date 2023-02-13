@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace AgOpenGPS
@@ -33,7 +32,8 @@ namespace AgOpenGPS
         }
         private void FormFlags_Load(object sender, EventArgs e)
         {
-            UpdateLabels(); }
+            UpdateLabels();
+        }
 
         private void btnNorth_MouseDown(object sender, MouseEventArgs e)
         {
@@ -54,10 +54,7 @@ namespace AgOpenGPS
             timer1.Enabled = false;
             mf.flagNumberPicked = 0;
             mf.FileSaveFlags();
-            mf.flagDubinsList?.Clear();
-
             Close();
-
         }
 
         private void btnDeleteFlag_Click(object sender, EventArgs e)
@@ -104,9 +101,9 @@ namespace AgOpenGPS
                     mf.flagPts[mf.flagNumberPicked - 1].easting, mf.flagPts[mf.flagNumberPicked - 1].northing).ToString("N2") + " m";
             else lblDistanceToFlag.Text = (glm.Distance(steerAxlePosRP,
                 mf.flagPts[mf.flagNumberPicked - 1].easting, mf.flagPts[mf.flagNumberPicked - 1].northing) * glm.m2ft).ToString("N2") + " m";
-        
-        }
 
+        }
+        /*
         private void MakeDubinsLineFromPivotToFlag()
         {
             //if (mf.ABLine.isBtnABLineOn)
@@ -136,19 +133,13 @@ namespace AgOpenGPS
                 northing = steerAxlePosRP.northing + (Math.Cos(steerAxlePosRP.heading) * 6),
                 heading = steerAxlePosRP.heading
             };
-
-            //get the dubins path vec3 point coordinates of turn
-            mf.flagDubinsList.Clear();
-
-            mf.flagDubinsList = dubPath.GenerateDubins(pt2, goal, mf.gf);
-
         }
-
+        */
         private void tboxFlagNotes_Click(object sender, EventArgs e)
         {
             if (mf.isKeyboardOn)
             {
-                mf.KeyboardToText((TextBox)sender);
+                mf.KeyboardToText((TextBox)sender, this);
                 btnExit.Focus();
             }
 

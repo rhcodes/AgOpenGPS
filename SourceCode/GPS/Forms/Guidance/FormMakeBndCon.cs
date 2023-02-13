@@ -12,18 +12,19 @@ namespace AgOpenGPS
             mf = _mf as FormGPS;
             InitializeComponent();
 
-            lblHz.Text = gStr.gsPass;
+            //lblHz.Text = gStr.gsPass;
             label1.Text = gStr.gsSpacing;
 
             this.Text = gStr.gsMakeBoundaryContours;
 
-            nudPass.Controls[0].Enabled = false;
+            //nudPass.Controls[0].Enabled = false;
             nudSpacing.Controls[0].Enabled = false;
         }
 
         private void BtnOk_Click(object sender, System.EventArgs e)
         {
-            mf.ct.BuildBoundaryContours((int)nudPass.Value, (int)nudSpacing.Value);
+            //convert to meters
+            mf.ct.BuildFenceContours((int)nudSpacing.Value);
             Close();
         }
 
@@ -32,16 +33,16 @@ namespace AgOpenGPS
             Close();
         }
 
-        private void NudPass_Enter(object sender, System.EventArgs e)
+        private void NudPass_Click(object sender, System.EventArgs e)
         {
-            mf.KeypadToNUD((NumericUpDown)sender);
+            mf.KeypadToNUD((NumericUpDown)sender, this);
             btnCancel.Focus();
 
         }
 
-        private void NudSpacing_Enter(object sender, System.EventArgs e)
+        private void NudSpacing_Click(object sender, System.EventArgs e)
         {
-            mf.KeypadToNUD((NumericUpDown)sender);
+            mf.KeypadToNUD((NumericUpDown)sender, this);
             btnCancel.Focus();
         }
 

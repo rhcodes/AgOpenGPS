@@ -15,7 +15,7 @@ namespace AgOpenGPS
 
             InitializeComponent();
 
-            this.Text = gStr.gsEnteraValue;
+            this.Text = "Enter a Value";
             //fill in the display
             keyboardString.Text = currentString.ToString();
         }

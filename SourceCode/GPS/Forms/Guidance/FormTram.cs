@@ -1,10 +1,4 @@
-﻿using OpenTK;
-using OpenTK.Graphics.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
-using System.IO;
+﻿using System;
 using System.Windows.Forms;
 
 namespace AgOpenGPS
@@ -14,66 +8,36 @@ namespace AgOpenGPS
         //access to the main GPS form and all its variables
         private readonly FormGPS mf = null;
 
-        private double snapAdj = 0;
+        private bool isSaving;
+        private static bool isCurve;
 
-        public FormTram(Form callingForm)
+        public FormTram(Form callingForm, bool Curve)
         {
             //get copy of the calling main form
             mf = callingForm as FormGPS;
-
             InitializeComponent();
 
             this.Text = gStr.gsTramLines;
-            lblSmallSnapRight.Text = gStr.gsWidth + " (m)";
-            label1.Text = gStr.gsTrack + " (m)";
             label3.Text = gStr.gsPasses;
+            label2.Text = ((int)(0.1 * mf.m2InchOrCm)).ToString() + mf.unitsInCm;
+            lblTramWidth.Text = (mf.tram.tramWidth * mf.m2FtOrM).ToString("N2") + mf.unitsFtM;
 
-            nudWheelSpacing.Controls[0].Enabled = false;
-            nudSnapAdj.Controls[0].Enabled = false;
-            nudEqWidth.Controls[0].Enabled = false;
             nudPasses.Controls[0].Enabled = false;
-            nudOffset.Controls[0].Enabled = false;
-            
+
+            isCurve = Curve;
         }
 
         private void FormTram_Load(object sender, EventArgs e)
         {
-            nudSnapAdj.ValueChanged -= nudSnapAdj_ValueChanged;
-            snapAdj = (Math.Round((mf.tool.toolWidth - mf.tool.toolOverlap) / 2.0, 3));
-            nudSnapAdj.Value = (decimal)snapAdj;
-            nudSnapAdj.ValueChanged += nudSnapAdj_ValueChanged;
-
-            nudEqWidth.ValueChanged -= nudEqWidth_ValueChanged;
-            nudEqWidth.Value = (decimal)Properties.Settings.Default.setTram_eqWidth;
-            nudEqWidth.ValueChanged += nudEqWidth_ValueChanged;
-
-            nudWheelSpacing.ValueChanged -= nudWheelSpacing_ValueChanged;
-            nudWheelSpacing.Value = (decimal)Properties.Settings.Default.setTram_wheelSpacing;
-            nudWheelSpacing.ValueChanged += nudWheelSpacing_ValueChanged;
-
-            nudPasses.ValueChanged -= nudPasses_ValueChanged;
             nudPasses.Value = Properties.Settings.Default.setTram_passes;
             nudPasses.ValueChanged += nudPasses_ValueChanged;
 
-            nudOffset.ValueChanged -= nudOffset_ValueChanged;
-            nudOffset.Value = (decimal)snapAdj;
-            mf.tram.abOffset = snapAdj;
-            nudOffset.ValueChanged += nudOffset_ValueChanged;
+            lblTrack.Text = (mf.vehicle.trackWidth * mf.m2FtOrM).ToString("N2") + mf.unitsFtM;
 
-            mf.ABLine.BuildTram();
+            mf.tool.halfWidth = (mf.tool.width - mf.tool.overlap) / 2.0;
+            lblToolWidthHalf.Text = (mf.tool.halfWidth * mf.m2FtOrM).ToString("N2") + mf.unitsFtM;
 
-            //cboxTramPassEvery.SelectedIndexChanged -= cboxTramPassEvery_SelectedIndexChanged;
-            //cboxTramPassEvery.Text = Properties.Vehicle.Default.setTram_Skips.ToString();
-            //cboxTramPassEvery.SelectedIndexChanged += cboxTramPassEvery_SelectedIndexChanged;
-            //mf.ABLine.tramPassEvery = Properties.Vehicle.Default.setTram_Skips;
-
-            //cboxTramBasedOn.SelectedIndexChanged -= cboxTramBasedOn_SelectedIndexChanged;
-            //cboxTramBasedOn.Text = Properties.Vehicle.Default.setTram_BasedOn.ToString();
-            //cboxTramBasedOn.SelectedIndexChanged += cboxTramBasedOn_SelectedIndexChanged;
-            //mf.ABLine.tramBasedOn = Properties.Vehicle.Default.setTram_BasedOn;
-
-            mf.ABLine.isEditing = true;
-            mf.layoutPanelRight.Enabled = false;
+            mf.panelRight.Enabled = false;
 
             //if off, turn it on because they obviously want a tram.
             if (mf.tram.displayMode == 0) mf.tram.displayMode = 1;
@@ -96,70 +60,110 @@ namespace AgOpenGPS
                 default:
                     break;
             }
+            mf.CloseTopMosts();
+        }
+
+        private void MoveBuildTramLine(double Dist)
+        {
+            if (isCurve)
+            {
+                if (Dist != 0)
+                    mf.curve.MoveABCurve(Dist);
+                mf.curve.BuildTram();
+            }
+            else
+            {
+                if (Dist != 0)
+                    mf.ABLine.MoveABLine(Dist);
+                mf.ABLine.BuildTram();
+            }
+        }
+
+        private void FormTram_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (isSaving)
+            {
+                if (isCurve)
+                {
+                    if (mf.curve.refList.Count > 0)
+                    {
+                        //array number is 1 less since it starts at zero
+                        int idx = mf.curve.numCurveLineSelected - 1;
+
+                        //mf.curve.curveArr[idx].Name = textBox1.Text.Trim();
+                        if (idx >= 0)
+                        {
+                            mf.curve.curveArr[idx].aveHeading = mf.curve.aveLineHeading;
+                            mf.curve.curveArr[idx].curvePts.Clear();
+                            //write out the Curve Points
+                            foreach (vec3 item in mf.curve.refList)
+                            {
+                                mf.curve.curveArr[idx].curvePts.Add(item);
+                            }
+                        }
+
+                        //save entire list
+                        mf.FileSaveCurveLines();
+                        mf.curve.moveDistance = 0;
+                    }
+                }
+                else
+                {
+                    int idx = mf.ABLine.numABLineSelected - 1;
+
+                    if (idx >= 0)
+                    {
+                        mf.ABLine.lineArr[idx].heading = mf.ABLine.abHeading;
+                        //calculate the new points for the reference line and points
+                        mf.ABLine.lineArr[idx].origin.easting = mf.ABLine.refPoint1.easting;
+                        mf.ABLine.lineArr[idx].origin.northing = mf.ABLine.refPoint1.northing;
+                    }
+
+                    mf.FileSaveABLines();
+                    mf.ABLine.moveDistance = 0;
+                }
+            }
+            else
+            {
+                mf.tram.tramArr?.Clear();
+                mf.tram.tramList?.Clear();
+                mf.tram.tramBndOuterArr?.Clear();
+                mf.tram.tramBndInnerArr?.Clear();
+
+                mf.tram.displayMode = 0;
+            }
+
+            mf.panelRight.Enabled = true;
+            mf.panelDrag.Visible = false;
+
+            mf.FileSaveTram();
+            mf.FixTramModeButton();
         }
 
         private void btnExit_Click(object sender, EventArgs e)
         {
-            int idx = mf.ABLine.numABLineSelected - 1;
-
-            if (idx >= 0)
-            {
-                mf.ABLine.lineArr[idx].heading = mf.ABLine.abHeading;
-                //calculate the new points for the reference line and points
-                mf.ABLine.lineArr[idx].origin.easting = mf.ABLine.refPoint1.easting;
-                mf.ABLine.lineArr[idx].origin.northing = mf.ABLine.refPoint1.northing;
-
-                //sin x cos z for endpoints, opposite for additional lines
-                mf.ABLine.lineArr[idx].ref1.easting = mf.ABLine.lineArr[idx].origin.easting - (Math.Sin(mf.ABLine.lineArr[idx].heading) *   1600.0);
-                mf.ABLine.lineArr[idx].ref1.northing = mf.ABLine.lineArr[idx].origin.northing - (Math.Cos(mf.ABLine.lineArr[idx].heading) * 1600.0);
-                mf.ABLine.lineArr[idx].ref2.easting = mf.ABLine.lineArr[idx].origin.easting + (Math.Sin(mf.ABLine.lineArr[idx].heading) *   1600.0);
-                mf.ABLine.lineArr[idx].ref2.northing = mf.ABLine.lineArr[idx].origin.northing + (Math.Cos(mf.ABLine.lineArr[idx].heading) * 1600.0);
-            }
-
-            mf.FileSaveABLines();
-
-            mf.ABLine.moveDistance = 0;
-            mf.ABLine.isEditing = false;
-            mf.layoutPanelRight.Enabled = true;
-            mf.panelDrag.Visible = false;
-            mf.offX = 0;
-            mf.offY = 0;
-
+            isSaving = true;
             Close();
         }
 
         private void btnLeft_Click(object sender, EventArgs e)
         {
-            double dist = -0.1;
-            mf.ABLine.MoveABLine(dist);
-            mf.ABLine.BuildTram();
+            MoveBuildTramLine(-0.1);
         }
 
         private void btnRight_Click(object sender, EventArgs e)
         {
-            double dist = 0.1;
-            mf.ABLine.MoveABLine(dist);
-            mf.ABLine.BuildTram();
+            MoveBuildTramLine(0.1);
         }
 
         private void btnAdjLeft_Click(object sender, EventArgs e)
         {
-            mf.ABLine.MoveABLine(-snapAdj);
-            mf.ABLine.BuildTram();
+            MoveBuildTramLine(-mf.tool.halfWidth);
         }
 
         private void btnAdjRight_Click(object sender, EventArgs e)
         {
-            mf.ABLine.BuildTram();
-            mf.ABLine.MoveABLine(snapAdj);
-        }
-
-
-        //determine mins maxs of patches and whole field.
-        private void nudSnapAdj_Enter(object sender, EventArgs e)
-        {
-            mf.KeypadToNUD((NumericUpDown)sender);
-            btnCancel.Focus();
+            MoveBuildTramLine(mf.tool.halfWidth);
         }
 
         private void nudPasses_ValueChanged(object sender, EventArgs e)
@@ -167,142 +171,79 @@ namespace AgOpenGPS
             mf.tram.passes = (int)nudPasses.Value;
             Properties.Settings.Default.setTram_passes = mf.tram.passes;
             Properties.Settings.Default.Save();
-            mf.ABLine.BuildTram();
+            MoveBuildTramLine(0);
         }
 
-        private void nudPasses_Enter(object sender, EventArgs e)
+        private void nudPasses_Click(object sender, EventArgs e)
         {
-            mf.KeypadToNUD((NumericUpDown)sender);
-            btnCancel.Focus();
-            mf.ABLine.BuildTram();
-        }
-
-        private void btnCreateTramLines_Click(object sender, EventArgs e)
-        {
-            mf.ABLine.BuildTram();
-        }
-
-        private void nudOffset_ValueChanged(object sender, EventArgs e)
-        {
-            mf.tram.abOffset = (double)nudOffset.Value;
-            Properties.Settings.Default.setTram_offset = mf.tram.abOffset;
-            Properties.Settings.Default.Save();
-            mf.ABLine.BuildTram();
-        }
-
-        private void nudOffset_Enter(object sender, EventArgs e)
-        {
-            mf.KeypadToNUD((NumericUpDown)sender);
-            btnCancel.Focus();
+            mf.KeypadToNUD((NumericUpDown)sender, this);
         }
 
         private void btnSwapAB_Click(object sender, EventArgs e)
         {
-            mf.ABLine.abHeading += Math.PI;
-            if (mf.ABLine.abHeading > glm.twoPI) mf.ABLine.abHeading -= glm.twoPI;
+            if (isCurve)
+            {
+                int cnt = mf.curve.refList.Count;
+                if (cnt > 0)
+                {
+                    mf.curve.refList.Reverse();
 
-            mf.ABLine.refABLineP1.easting = mf.ABLine.refPoint1.easting - (Math.Sin(mf.ABLine.abHeading) *   1600.0);
-            mf.ABLine.refABLineP1.northing = mf.ABLine.refPoint1.northing - (Math.Cos(mf.ABLine.abHeading) * 1600.0);
-                                                                                                             
-            mf.ABLine.refABLineP2.easting = mf.ABLine.refPoint1.easting + (Math.Sin(mf.ABLine.abHeading) *   1600.0);
-            mf.ABLine.refABLineP2.northing = mf.ABLine.refPoint1.northing + (Math.Cos(mf.ABLine.abHeading) * 1600.0);
+                    vec3[] arr = new vec3[cnt];
+                    cnt--;
+                    mf.curve.refList.CopyTo(arr);
+                    mf.curve.refList.Clear();
 
-            mf.ABLine.refPoint2.easting = mf.ABLine.refABLineP2.easting;
-            mf.ABLine.refPoint2.northing = mf.ABLine.refABLineP2.northing;
+                    mf.curve.aveLineHeading += Math.PI;
+                    if (mf.curve.aveLineHeading < 0) mf.curve.aveLineHeading += glm.twoPI;
+                    if (mf.curve.aveLineHeading > glm.twoPI) mf.curve.aveLineHeading -= glm.twoPI;
 
-            mf.ABLine.BuildTram();
+                    for (int i = 1; i < cnt; i++)
+                    {
+                        vec3 pt3 = arr[i];
+                        pt3.heading += Math.PI;
+                        if (pt3.heading > glm.twoPI) pt3.heading -= glm.twoPI;
+                        if (pt3.heading < 0) pt3.heading += glm.twoPI;
+                        mf.curve.refList.Add(pt3);
+                    }
+                }
+            }
+            else
+            {
+                mf.ABLine.abHeading += Math.PI;
+                if (mf.ABLine.abHeading > glm.twoPI) mf.ABLine.abHeading -= glm.twoPI;
+
+                mf.ABLine.refABLineP1.easting = mf.ABLine.refPoint1.easting - (Math.Sin(mf.ABLine.abHeading) * mf.ABLine.abLength);
+                mf.ABLine.refABLineP1.northing = mf.ABLine.refPoint1.northing - (Math.Cos(mf.ABLine.abHeading) * mf.ABLine.abLength);
+
+                mf.ABLine.refABLineP2.easting = mf.ABLine.refPoint1.easting + (Math.Sin(mf.ABLine.abHeading) * mf.ABLine.abLength);
+                mf.ABLine.refABLineP2.northing = mf.ABLine.refPoint1.northing + (Math.Cos(mf.ABLine.abHeading) * mf.ABLine.abLength);
+
+                mf.ABLine.refPoint2.easting = mf.ABLine.refABLineP2.easting;
+                mf.ABLine.refPoint2.northing = mf.ABLine.refABLineP2.northing;
+            }
+            MoveBuildTramLine(0);
         }
 
         private void btnTriggerDistanceUp_MouseDown(object sender, MouseEventArgs e)
         {
             nudPasses.UpButton();
-            //mf.ABLine.BuildTram();
         }
 
         private void btnTriggerDistanceDn_MouseDown(object sender, MouseEventArgs e)
         {
             nudPasses.DownButton();
-            //mf.ABLine.BuildTram();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            mf.ABLine.tramArr?.Clear();
-            mf.ABLine.tramList?.Clear();
-            mf.tram.tramBndArr?.Clear();
-
-            //mf.ABLine.tramPassEvery = 0;
-            //mf.ABLine.tramBasedOn = 0;
-            mf.ABLine.isEditing = false;
-            mf.layoutPanelRight.Enabled = true;
-            mf.panelDrag.Visible = false;
-            mf.offX = 0;
-            mf.offY = 0;
-
-            mf.tram.displayMode = 0;
             Close();
-        }
-
-        //private void cboxTramBasedOn_SelectedIndexChanged(object sender, EventArgs e)
-        //{
-        //    mf.ABLine.tramBasedOn = cboxTramBasedOn.SelectedIndex;
-        //    Properties.Vehicle.Default.setTram_BasedOn = mf.ABLine.tramBasedOn;
-        //    Properties.Vehicle.Default.Save();
-        //}
-
-        //private void cboxTramPassEvery_SelectedIndexChanged(object sender, EventArgs e)
-        //{
-        //    if (cboxTramPassEvery.SelectedIndex > 0)
-        //        mf.ABLine.tramPassEvery = cboxTramPassEvery.SelectedIndex;
-        //    else mf.ABLine.tramPassEvery = 0;
-        //    Properties.Vehicle.Default.setTram_Skips = cboxTramPassEvery.SelectedIndex;
-        //    Properties.Vehicle.Default.Save();
-        //}
-
-        private void nudSnapAdj_ValueChanged(object sender, EventArgs e)
-        {
-            snapAdj = (double)nudSnapAdj.Value;
-            Properties.Settings.Default.setTram_snapAdj = snapAdj;
-            Properties.Settings.Default.Save();
-            mf.ABLine.BuildTram();
-        }
-
-        private void nudEqWidth_ValueChanged(object sender, EventArgs e)
-        {
-            mf.tram.tramWidth  = (double)nudEqWidth.Value;
-            Properties.Settings.Default.setTram_eqWidth = mf.tram.tramWidth;
-            Properties.Settings.Default.Save();
-            mf.ABLine.BuildTram();
-
-        }
-
-        private void nudEqWidth_Enter(object sender, EventArgs e)
-        {
-            mf.KeypadToNUD((NumericUpDown)sender);
-            btnCancel.Focus();
-        }
-
-        private void nudWheelSpacing_ValueChanged(object sender, EventArgs e)
-        {
-            mf.tram.wheelTrack = (double)nudWheelSpacing.Value;
-            mf.tram.halfWheelTrack = mf.tram.wheelTrack * 0.5;
-            Properties.Settings.Default.setTram_wheelSpacing = mf.tram.wheelTrack;
-            Properties.Settings.Default.Save();
-            mf.ABLine.BuildTram();
-
-        }
-
-        private void nudWheelSpacing_Enter(object sender, EventArgs e)
-        {
-            mf.KeypadToNUD((NumericUpDown)sender);
-            btnCancel.Focus();        
         }
 
         private void btnMode_Click(object sender, EventArgs e)
         {
             mf.tram.displayMode++;
             if (mf.tram.displayMode > 3) mf.tram.displayMode = 0;
-            
+
             switch (mf.tram.displayMode)
             {
                 case 0:
@@ -322,5 +263,68 @@ namespace AgOpenGPS
                     break;
             }
         }
+
+        #region Help
+        private void btnAdjLeft_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.ht_btnAdjHalfToolWidth, gStr.gsHelp);
+        }
+
+        private void btnAdjRight_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.ht_btnAdjHalfToolWidth, gStr.gsHelp);
+        }
+
+        private void btnLeft_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.ht_btnLeftRightNudge, gStr.gsHelp);
+        }
+
+        private void btnRight_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.ht_btnLeftRightNudge, gStr.gsHelp);
+        }
+
+        private void btnSwapAB_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.ht_btnSwapAB, gStr.gsHelp);
+        }
+
+        private void btnMode_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.h_btnTramDisplayMode, gStr.gsHelp);
+        }
+
+        private void nudPasses_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.ht_nudPasses, gStr.gsHelp);
+        }
+
+        private void btnCancel_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.ht_btnCancel, gStr.gsHelp);
+        }
+
+        private void btnExit_HelpRequested(object sender, HelpEventArgs hlpevent)
+        {
+            MessageBox.Show(gStr.ht_btnSave, gStr.gsHelp);
+        }
+
+        #endregion
     }
 }
+
+
+/*
+            
+            MessageBox.Show(gStr, gStr.gsHelp);
+
+            DialogResult result2 = MessageBox.Show(gStr, gStr.gsHelp,
+                MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+
+            if (result2 == DialogResult.Yes)
+            {
+                System.Diagnostics.Process.Start("https://www.youtube.com/watch?v=rsJMRZrcuX4");
+            }
+
+*/

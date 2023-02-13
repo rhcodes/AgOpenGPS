@@ -14,6 +14,8 @@ namespace AgOpenGPS
 
         private string dataPWM = "-1";
 
+        private bool isAuto = false;
+
         public FormSteerGraph(Form callingForm)
         {
             mf = callingForm as FormGPS;
@@ -34,10 +36,8 @@ namespace AgOpenGPS
         {
             {
                 //word 0 - steerangle, 1 - pwmDisplay
-#pragma warning disable CS1690 // Accessing a member on a field of a marshal-by-reference class may cause a runtime exception
-                dataSteerAngle = mf.actualSteerAngleDisp.ToString();
-                dataPWM = mf.guidanceLineSteerAngle.ToString();
-#pragma warning restore CS1690 // Accessing a member on a field of a marshal-by-reference class may cause a runtime exception
+                dataSteerAngle = mf.mc.actualSteerAngleChart.ToString(CultureInfo.InvariantCulture);
+                dataPWM = mf.guidanceLineSteerAngle.ToString(CultureInfo.InvariantCulture);
 
                 lblSteerAng.Text = mf.ActualSteerAngle;
                 lblPWM.Text = mf.SetSteerAngle;
@@ -71,12 +71,85 @@ namespace AgOpenGPS
 
         private void FormSteerGraph_Load(object sender, EventArgs e)
         {
-            timer1.Interval = (int)((1 / (double)mf.fixUpdateHz) * 1000);
+            timer1.Interval = (int)((1 / mf.gpsHz) * 1000);
+
+            unoChart.ChartAreas[0].AxisY.Minimum = -1000;
+            unoChart.ChartAreas[0].AxisY.Maximum = 1000;
+            unoChart.ResetAutoValues();
+
+            lblMax.Text = ((int)(unoChart.ChartAreas[0].AxisY.Maximum * 0.01)).ToString();
+            lblMin.Text = ((int)(unoChart.ChartAreas[0].AxisY.Minimum * 0.01)).ToString();
+
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void btnGainUp_Click(object sender, EventArgs e)
+        {
+            if (isAuto)
+            {
+                unoChart.ChartAreas[0].AxisY.Minimum = -1000;
+                unoChart.ChartAreas[0].AxisY.Maximum = 1000;
+                unoChart.ResetAutoValues();
+                lblMax.Text = ((int)(unoChart.ChartAreas[0].AxisY.Maximum * 0.01)).ToString();
+                lblMin.Text = ((int)(unoChart.ChartAreas[0].AxisY.Minimum * 0.01)).ToString();
+                isAuto = false; 
+                return;
+            }
+
+            unoChart.ChartAreas[0].AxisY.Minimum *= 1.5;
+            unoChart.ChartAreas[0].AxisY.Maximum *= 1.5;
+            unoChart.ChartAreas[0].AxisY.Minimum = (int)unoChart.ChartAreas[0].AxisY.Minimum;
+            unoChart.ChartAreas[0].AxisY.Maximum = (int)unoChart.ChartAreas[0].AxisY.Maximum;
+            unoChart.ResetAutoValues();
+            lblMax.Text = ((int)(unoChart.ChartAreas[0].AxisY.Maximum * 0.01)).ToString();
+            lblMin.Text = ((int)(unoChart.ChartAreas[0].AxisY.Minimum * 0.01)).ToString();
+        }
+
+        private void btnGainAuto_Click(object sender, EventArgs e)
+        {
+            unoChart.ChartAreas[0].AxisY.Maximum = Double.NaN;
+            unoChart.ChartAreas[0].AxisY.Minimum = Double.NaN;
+            unoChart.ChartAreas[0].RecalculateAxesScale();
+            unoChart.ResetAutoValues();
+            lblMax.Text = "Auto";
+            lblMin.Text = "";
+            isAuto = true;
+        }
+
+        private void btnGainDown_Click(object sender, EventArgs e)
+        {
+            if (isAuto)
+            {
+                unoChart.ChartAreas[0].AxisY.Minimum = -1000;
+                unoChart.ChartAreas[0].AxisY.Maximum = 1000;
+                unoChart.ResetAutoValues();
+                lblMax.Text = ((int)(unoChart.ChartAreas[0].AxisY.Maximum * 0.01)).ToString();
+                lblMin.Text = ((int)(unoChart.ChartAreas[0].AxisY.Minimum * 0.01)).ToString();
+                isAuto = false;
+                return;
+            }
+
+            if (unoChart.ChartAreas[0].AxisY.Minimum >= -200)
+            {
+                unoChart.ChartAreas[0].AxisY.Minimum = -200;
+                unoChart.ChartAreas[0].AxisY.Maximum = 200;
+                unoChart.ResetAutoValues();
+                lblMax.Text = ((int)(unoChart.ChartAreas[0].AxisY.Maximum * 0.01)).ToString();
+                lblMin.Text = ((int)(unoChart.ChartAreas[0].AxisY.Minimum * 0.01)).ToString();
+                return;
+            }
+
+            unoChart.ChartAreas[0].AxisY.Minimum *= 0.66666;
+            unoChart.ChartAreas[0].AxisY.Maximum *= 0.66666;
+            unoChart.ChartAreas[0].AxisY.Minimum = (int)unoChart.ChartAreas[0].AxisY.Minimum;
+            unoChart.ChartAreas[0].AxisY.Maximum = (int)unoChart.ChartAreas[0].AxisY.Maximum;
+            unoChart.ResetAutoValues();
+            lblMax.Text = ((int)(unoChart.ChartAreas[0].AxisY.Maximum * 0.01)).ToString();
+            lblMin.Text = ((int)(unoChart.ChartAreas[0].AxisY.Minimum * 0.01)).ToString();
         }
     }
 }
