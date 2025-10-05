@@ -893,19 +893,16 @@ namespace AgOpenGPS
                 }
 
                 //like normal
-                if (trk.gArr.Count > 0 && trk.idx > -1)
+                if (trk.gArr != null && trk.gArr.Count > 0 && trk.idx >= 0 && trk.idx < trk.gArr.Count)
                 {
                     if (trk.gArr[trk.idx].mode == TrackMode.AB)
                     {
                         ABLine.BuildCurrentABLineList(pivotAxlePos);
-
                         ABLine.GetCurrentABLine(pivotAxlePos, steerAxlePos);
                     }
                     else
                     {
-                        //build new current ref line if required
                         curve.BuildCurveCurrentList(pivotAxlePos);
-
                         curve.GetCurrentCurveLine(pivotAxlePos, steerAxlePos);
                     }
                 }
@@ -1073,7 +1070,7 @@ namespace AgOpenGPS
             #region Youturn
 
             //if an outer boundary is set, then apply critical stop logic
-            if (bnd.bndList.Count > 0)
+            if (bnd.bndList != null && bnd.bndList.Count > 0)
             {
                 //check if inside all fence
                 if (!yt.isYouTurnBtnOn)
@@ -1653,7 +1650,7 @@ namespace AgOpenGPS
             //send the current and previous GPS fore/aft corrected fix to each section
             for (int j = 0; j < triStrip.Count; j++)
             {
-                if (triStrip[j].isDrawing)
+                if (triStrip[j] != null && triStrip[j].isDrawing)
                 {
                     if (isPatchesChangingColor)
                     {
