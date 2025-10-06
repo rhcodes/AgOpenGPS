@@ -933,7 +933,7 @@ The order you push them will be the order they appear on the menu from bottom up
     <value>Save and Return</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Time for a Beer! Goodbye!</value>
+    <value>See you next time!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Saving field..</value>

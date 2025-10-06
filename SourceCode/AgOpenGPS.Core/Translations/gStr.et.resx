@@ -889,7 +889,7 @@ Nende vajutamise järjekord on menüüs kuvamise järjekord alt ülespoole.</val
     <value>Salvesta ja mine tagasi</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Aeg õlleks! Headaega!</value>
+    <value>Näeme järgmisel korral!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Põllu salvestamine..</value>

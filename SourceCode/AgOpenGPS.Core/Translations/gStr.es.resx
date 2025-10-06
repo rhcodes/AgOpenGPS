@@ -558,7 +558,7 @@ El orden en que los presiones será el orden en que aparecerán en el menú de a
     <value>Guardar y volver</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>¡Hora de una cerveza! ¡Adiós!</value>
+    <value>¡Hasta la próxima!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Guardando campo..</value>
