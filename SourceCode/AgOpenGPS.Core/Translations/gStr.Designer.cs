@@ -342,7 +342,7 @@ namespace AgOpenGPS.Core.Translations {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Switch speed (km/h).
+        ///   Looks up a localized string similar to Switch Speed.
         /// </summary>
         public static string gsAutoSwitchDualFixSpeed {
             get {

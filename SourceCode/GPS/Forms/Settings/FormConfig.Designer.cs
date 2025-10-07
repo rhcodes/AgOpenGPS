@@ -4356,11 +4356,11 @@ namespace AgOpenGPS
             this.labelAutoSwitchDualFixSpeed.Font = new System.Drawing.Font("Tahoma", 14.25F);
             this.labelAutoSwitchDualFixSpeed.ForeColor = System.Drawing.Color.Black;
             this.labelAutoSwitchDualFixSpeed.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.labelAutoSwitchDualFixSpeed.Location = new System.Drawing.Point(15, 270);
+            this.labelAutoSwitchDualFixSpeed.Location = new System.Drawing.Point(15, 265);
             this.labelAutoSwitchDualFixSpeed.Name = "labelAutoSwitchDualFixSpeed";
-            this.labelAutoSwitchDualFixSpeed.Size = new System.Drawing.Size(184, 23);
+            this.labelAutoSwitchDualFixSpeed.Size = new System.Drawing.Size(121, 23);
             this.labelAutoSwitchDualFixSpeed.TabIndex = 485;
-            this.labelAutoSwitchDualFixSpeed.Text = "Switch speed (km/h)";
+            this.labelAutoSwitchDualFixSpeed.Text = "Switch speed";
             this.labelAutoSwitchDualFixSpeed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // nudAutoSwitchDualFixSpeed
@@ -4396,11 +4396,11 @@ namespace AgOpenGPS
             // cboxIsAutoSwitchDualFixOn
             // 
             this.cboxIsAutoSwitchDualFixOn.Appearance = System.Windows.Forms.Appearance.Button;
-            this.cboxIsAutoSwitchDualFixOn.BackColor = System.Drawing.Color.AliceBlue;
+            this.cboxIsAutoSwitchDualFixOn.BackColor = System.Drawing.SystemColors.Control;
             this.cboxIsAutoSwitchDualFixOn.FlatAppearance.CheckedBackColor = System.Drawing.Color.LightGreen;
             this.cboxIsAutoSwitchDualFixOn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cboxIsAutoSwitchDualFixOn.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cboxIsAutoSwitchDualFixOn.ForeColor = System.Drawing.Color.Black;
+            this.cboxIsAutoSwitchDualFixOn.ForeColor = System.Drawing.SystemColors.ControlText;
             this.cboxIsAutoSwitchDualFixOn.Location = new System.Drawing.Point(15, 215);
             this.cboxIsAutoSwitchDualFixOn.Name = "cboxIsAutoSwitchDualFixOn";
             this.cboxIsAutoSwitchDualFixOn.Size = new System.Drawing.Size(326, 33);
