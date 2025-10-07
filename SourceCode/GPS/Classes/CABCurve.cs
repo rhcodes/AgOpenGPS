@@ -1410,6 +1410,13 @@ namespace AgOpenGPS
                 sourceIndex++;
             }
 
+            // Always add the final point if we didn't generate enough samples
+            // This ensures short curves (< targetSpacing) remain valid with at least 2 points
+            if (resampledList.Count == 1)
+            {
+                resampledList.Add(originalList[originalList.Count - 1]);
+            }
+
             // Recalculate headings for the resampled points
             for (int i = 0; i < resampledList.Count - 1; i++)
             {
