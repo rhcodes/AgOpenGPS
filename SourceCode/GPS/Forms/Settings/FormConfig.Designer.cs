@@ -4396,11 +4396,11 @@ namespace AgOpenGPS
             // cboxIsAutoSwitchDualFixOn
             // 
             this.cboxIsAutoSwitchDualFixOn.Appearance = System.Windows.Forms.Appearance.Button;
-            this.cboxIsAutoSwitchDualFixOn.BackColor = System.Drawing.Color.AliceBlue;
+            this.cboxIsAutoSwitchDualFixOn.BackColor = System.Drawing.SystemColors.Control;
             this.cboxIsAutoSwitchDualFixOn.FlatAppearance.CheckedBackColor = System.Drawing.Color.LightGreen;
             this.cboxIsAutoSwitchDualFixOn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cboxIsAutoSwitchDualFixOn.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cboxIsAutoSwitchDualFixOn.ForeColor = System.Drawing.Color.Black;
+            this.cboxIsAutoSwitchDualFixOn.ForeColor = System.Drawing.SystemColors.ControlText;
             this.cboxIsAutoSwitchDualFixOn.Location = new System.Drawing.Point(15, 215);
             this.cboxIsAutoSwitchDualFixOn.Name = "cboxIsAutoSwitchDualFixOn";
             this.cboxIsAutoSwitchDualFixOn.Size = new System.Drawing.Size(326, 33);
