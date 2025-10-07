@@ -1793,15 +1793,6 @@ namespace AgOpenGPS
             Form form = new FormAllSettings(this);
             form.Show(this);
         }
-        private void guidelinesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            isSideGuideLines = !isSideGuideLines;
-            if (isSideGuideLines) guidelinesToolStripMenuItem.Checked = true;
-            else guidelinesToolStripMenuItem.Checked = false;
-
-            Properties.Settings.Default.setMenu_isSideGuideLines = isSideGuideLines;
-            Properties.Settings.Default.Save();
-        }
         private void boundaryToolToolStripMenu_Click(object sender, EventArgs e)
         {
             if (isJobStarted)
