@@ -202,19 +202,42 @@ namespace AgOpenGPS
 
         private void UpdateAutoSwitchDualFixSpeedUI()
         {
+            // Always stored internally as km/h
             double speedKmh = Properties.Settings.Default.setAutoSwitchDualFixSpeed;
+            double minKmh = 1.0;
+            double maxKmh = 10.0;
+
+            // Convert both value and limits if needed
+            double displayValue, displayMin, displayMax;
+            string unitText;
 
             if (mf.isMetric)
             {
-                labelAutoSwitchDualFixSpeed.Text = $"{gStr.gsAutoSwitchDualFixSpeed} (km/h)";
-                nudAutoSwitchDualFixSpeed.Value = (decimal)speedKmh;
+                displayValue = speedKmh;
+                displayMin = minKmh;
+                displayMax = maxKmh;
+                unitText = "(km/h)";
             }
             else
             {
-                double speedMph = speedKmh / 1.60934; // 1 mph = 1.60934 km/h
-                labelAutoSwitchDualFixSpeed.Text = $"{gStr.gsAutoSwitchDualFixSpeed} (mph)";
-                nudAutoSwitchDualFixSpeed.Value = (decimal)speedMph;
+                displayValue = speedKmh / 1.60;
+                displayMin = minKmh / 1.60;
+                displayMax = maxKmh / 1.60;
+                unitText = "(mph)";
             }
+
+            // Clamp within the converted range to prevent ArgumentOutOfRangeException
+            displayValue = Math.Max(displayMin, Math.Min(displayValue, displayMax));
+
+            // Apply limits before setting Value
+            nudAutoSwitchDualFixSpeed.DecimalPlaces = 1;
+            nudAutoSwitchDualFixSpeed.Increment = 0.1M;
+            nudAutoSwitchDualFixSpeed.Minimum = (decimal)displayMin;
+            nudAutoSwitchDualFixSpeed.Maximum = (decimal)displayMax;
+            nudAutoSwitchDualFixSpeed.Value = (decimal)displayValue;
+
+            // Update label
+            labelAutoSwitchDualFixSpeed.Text = $"{gStr.gsAutoSwitchDualFixSpeed} {unitText}";
         }
 
 

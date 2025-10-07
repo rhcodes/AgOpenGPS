@@ -249,7 +249,7 @@ namespace AgOpenGPS
             labelElevationOnOff.Text = gStr.gsElevationlog;
             unitsGroupBox.Text = gStr.gsUnits;
             cboxIsAutoSwitchDualFixOn.Text = gStr.gsAutoSwitchDualFix;
-            labelAutoSwitchDualFixSpeed.Text = gStr.gsAutoSwitchDualFixSpeed + (mf.isMetric ? " (km/h)" : " (mph)");
+            labelAutoSwitchDualFixSpeed.Text = gStr.gsAutoSwitchDualFixSpeed;
 
             UpdateSummary();
 
