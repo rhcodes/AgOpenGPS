@@ -24,6 +24,8 @@ namespace AgOpenGPS.Core.Models
         private const double milesToKilometers = 1.609344;
         private const double kilometersToMiles = 1 / milesToKilometers;
         private const double metersToFeet = 3.28;
+        private const double metersToInches = 39.3701;
+        private const double metersToCm = 100;
         private const double metersToMiles = metersToKilometers * kilometersToMiles;
 
         private double _distanceInMeters;
@@ -36,6 +38,53 @@ namespace AgOpenGPS.Core.Models
         public double InKilometers => _distanceInMeters * metersToKilometers;
         public double InMiles => _distanceInMeters * metersToMiles;
         public double InFeet => _distanceInMeters * metersToFeet;
+
+
+        // Return the distance (value and unit) in a string expressed in cm or inches, (depending on argument isMetric)
+        // Use 0 decimals for cm and 1 decimal for inches.
+
+        public static string VerySmallDistanceString(bool isMetric, double distanceInMeters)
+        {
+            if (isMetric)
+            {
+                return (distanceInMeters * metersToCm).ToString("N0") + " cm";
+            }
+            else
+            {
+                return (distanceInMeters * metersToInches).ToString("N1") + " in";
+            }
+        }
+
+        // Return the distance (value and unit) in a string expressed in cm or inches, (depending on argument isMetric)
+        // Use 0 decimals for both cm and inches.
+        public static string SmallDistanceString(bool isMetric, double distanceInMeters)
+        {
+            if (isMetric)
+            {
+                return (distanceInMeters * metersToCm).ToString("N0") + " cm";
+            }
+            else
+            {
+                return (distanceInMeters * metersToInches).ToString("N0") + " in";
+            }
+        }
+
+        // Return the distance (value and unit) in a string expressed in meters or feet and inches, (depending on argument isMetric)
+        public static string MediumDistanceString(bool isMetric, double distanceInMeters)
+        {
+            if (isMetric)
+            {
+                return distanceInMeters.ToString() + " m";
+            }
+            else
+            {
+                int totalInches = Convert.ToInt32(distanceInMeters * metersToInches);
+                int feet = totalInches / 12;
+                int inches = totalInches - 12 * feet;
+                return feet.ToString() + "' " + inches.ToString() + '"';
+            }
+        }
+
     }
 
     public class Area
