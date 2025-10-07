@@ -74,7 +74,7 @@ namespace AgOpenGPS.Core.Models
         {
             if (isMetric)
             {
-                return distanceInMeters.ToString() + " m";
+                return distanceInMeters.ToString("N2") + " m";
             }
             else
             {

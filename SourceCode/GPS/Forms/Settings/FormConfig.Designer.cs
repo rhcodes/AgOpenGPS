@@ -477,10 +477,8 @@ namespace AgOpenGPS
             this.chkDisplayExtraGuides = new System.Windows.Forms.CheckBox();
             this.labelCurrentVehicle = new System.Windows.Forms.Label();
             this.lblInchesCm = new System.Windows.Forms.Label();
-            this.lblSecTotalWidthMeters = new System.Windows.Forms.Label();
+            this.lblSecTotalWidth = new System.Windows.Forms.Label();
             this.labelToolWidthBottom = new System.Windows.Forms.Label();
-            this.lblSecTotalWidthFeet = new System.Windows.Forms.Label();
-            this.lblSecTotalWidthInches = new System.Windows.Forms.Label();
             this.panelBottom = new System.Windows.Forms.Panel();
             this.lblFeetMeters = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
@@ -8518,15 +8516,15 @@ namespace AgOpenGPS
             // 
             // lblSecTotalWidthMeters
             // 
-            this.lblSecTotalWidthMeters.AutoSize = true;
-            this.lblSecTotalWidthMeters.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSecTotalWidthMeters.ForeColor = System.Drawing.Color.Black;
-            this.lblSecTotalWidthMeters.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.lblSecTotalWidthMeters.Location = new System.Drawing.Point(632, 32);
-            this.lblSecTotalWidthMeters.Name = "lblSecTotalWidthMeters";
-            this.lblSecTotalWidthMeters.Size = new System.Drawing.Size(32, 25);
-            this.lblSecTotalWidthMeters.TabIndex = 302;
-            this.lblSecTotalWidthMeters.Text = "II";
+            this.lblSecTotalWidth.AutoSize = true;
+            this.lblSecTotalWidth.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblSecTotalWidth.ForeColor = System.Drawing.Color.Black;
+            this.lblSecTotalWidth.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.lblSecTotalWidth.Location = new System.Drawing.Point(632, 32);
+            this.lblSecTotalWidth.Name = "lblSecTotalWidthMeters";
+            this.lblSecTotalWidth.Size = new System.Drawing.Size(32, 25);
+            this.lblSecTotalWidth.TabIndex = 302;
+            this.lblSecTotalWidth.Text = "II";
             // 
             // labelToolWidthBottom
             // 
@@ -8540,40 +8538,14 @@ namespace AgOpenGPS
             this.labelToolWidthBottom.Text = "Tool Width:";
             this.labelToolWidthBottom.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // lblSecTotalWidthFeet
-            // 
-            this.lblSecTotalWidthFeet.AutoSize = true;
-            this.lblSecTotalWidthFeet.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSecTotalWidthFeet.ForeColor = System.Drawing.Color.Black;
-            this.lblSecTotalWidthFeet.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.lblSecTotalWidthFeet.Location = new System.Drawing.Point(620, 32);
-            this.lblSecTotalWidthFeet.Name = "lblSecTotalWidthFeet";
-            this.lblSecTotalWidthFeet.Size = new System.Drawing.Size(36, 25);
-            this.lblSecTotalWidthFeet.TabIndex = 298;
-            this.lblSecTotalWidthFeet.Text = "FF";
-            // 
-            // lblSecTotalWidthInches
-            // 
-            this.lblSecTotalWidthInches.AutoSize = true;
-            this.lblSecTotalWidthInches.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSecTotalWidthInches.ForeColor = System.Drawing.Color.Black;
-            this.lblSecTotalWidthInches.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.lblSecTotalWidthInches.Location = new System.Drawing.Point(679, 32);
-            this.lblSecTotalWidthInches.Name = "lblSecTotalWidthInches";
-            this.lblSecTotalWidthInches.Size = new System.Drawing.Size(32, 25);
-            this.lblSecTotalWidthInches.TabIndex = 300;
-            this.lblSecTotalWidthInches.Text = "II";
-            // 
             // panelBottom
             // 
             this.panelBottom.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.panelBottom.Controls.Add(this.lblFeetMeters);
             this.panelBottom.Controls.Add(this.labelToolWidthBottom);
-            this.panelBottom.Controls.Add(this.lblSecTotalWidthInches);
-            this.panelBottom.Controls.Add(this.lblSecTotalWidthFeet);
             this.panelBottom.Controls.Add(this.btnOK);
             this.panelBottom.Controls.Add(this.lblInchesCm);
-            this.panelBottom.Controls.Add(this.lblSecTotalWidthMeters);
+            this.panelBottom.Controls.Add(this.lblSecTotalWidth);
             this.panelBottom.Controls.Add(this.labelCurrentVehicle);
             this.panelBottom.Controls.Add(this.labelUnitsBottom);
             this.panelBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -8879,10 +8851,8 @@ namespace AgOpenGPS
         private System.Windows.Forms.Label labelCoverage;
         private NudlessNumericUpDown nudMinCoverage;
         private System.Windows.Forms.Label labelNumOfSections;
-        private System.Windows.Forms.Label lblSecTotalWidthMeters;
+        private System.Windows.Forms.Label lblSecTotalWidth;
         private System.Windows.Forms.Label labelToolWidthBottom;
-        private System.Windows.Forms.Label lblSecTotalWidthFeet;
-        private System.Windows.Forms.Label lblSecTotalWidthInches;
         private System.Windows.Forms.Label lblInchesCm;
         private System.Windows.Forms.Button btnRemoveZeroOffset;
         private System.Windows.Forms.Label lblRollZeroOffset;
