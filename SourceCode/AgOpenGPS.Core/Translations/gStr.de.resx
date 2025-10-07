@@ -825,7 +825,7 @@ Die Reihenfolge, in der Sie sie drücken, entspricht der Reihenfolge, in der sie
     <value>Speichern und zurückkehren</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Zeit für ein Bier! Auf Wiedersehen!</value>
+    <value>Bis zum nächsten Mal!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Feld wird gespeichert..</value>

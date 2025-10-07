@@ -873,7 +873,7 @@ Kolejność, w jakiej je naciśniesz, będzie kolejnością, w jakiej pojawią s
     <value>Zapisz i wróć</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Czas na piwo! Do widzenia!</value>
+    <value>Do zobaczenia następnym razem!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Zapisywanie pola..</value>

@@ -918,7 +918,7 @@ Kuvakkeet näkyvät alhaalta ylöspäin siinä järjestyksessä jossa ne ovat va
     <value>Tallenna ja palaa</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Olut aika! Näkemiin!</value>
+    <value>Nähdään ensi kerralla!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Tallennetaan peltoa..</value>

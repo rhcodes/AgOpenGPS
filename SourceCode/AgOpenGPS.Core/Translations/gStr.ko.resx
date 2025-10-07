@@ -933,7 +933,7 @@
     <value>저장 및 반환</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>막걸리 마실 시간이에요! 안녕히 계세요!</value>
+    <value>다음에 또 봐요!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>들판 저장 중..</value>

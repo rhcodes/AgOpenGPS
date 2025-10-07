@@ -915,7 +915,7 @@ Rekkefølgen du trykker på dem, vil være rekkefølgen de vises i menyen fra bu
     <value>Lagre og gå tilbake</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Tid for en øl! Ha det!</value>
+    <value>Vi ses neste gang!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Lagrer felt..</value>

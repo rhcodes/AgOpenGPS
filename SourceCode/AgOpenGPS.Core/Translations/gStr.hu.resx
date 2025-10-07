@@ -937,7 +937,7 @@ A választott sorrend alapján fognak megjelenni alulról felfelé.</value>
     <value>Mentés és visszatérés</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Itt az ideje egy sörnek! Viszlát!</value>
+    <value>Viszlát legközelebb!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Tábla mentése..</value>
