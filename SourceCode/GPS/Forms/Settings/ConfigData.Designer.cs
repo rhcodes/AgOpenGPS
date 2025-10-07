@@ -1,8 +1,9 @@
-﻿using System;
+﻿using AgLibrary.Logging;
+using AgOpenGPS.Controls;
+using AgOpenGPS.Core.Translations;
+using System;
 using System.Linq;
 using System.Windows.Forms;
-using AgLibrary.Logging;
-using AgOpenGPS.Controls;
 
 namespace AgOpenGPS
 {
@@ -53,7 +54,7 @@ namespace AgOpenGPS
 
             cboxIsReverseOn.Checked = Properties.Settings.Default.setIMU_isReverseOn;
             cboxIsAutoSwitchDualFixOn.Checked = Properties.Settings.Default.setAutoSwitchDualFixOn;
-            nudAutoSwitchDualFixSpeed.Value = (decimal)Properties.Settings.Default.setAutoSwitchDualFixSpeed;
+            UpdateAutoSwitchDualFixSpeedUI();
 
             if (mf.ahrs.imuHeading != 99999)
             {
@@ -114,6 +115,7 @@ namespace AgOpenGPS
             Properties.Settings.Default.setAutoSwitchDualFixOn = mf.ahrs.autoSwitchDualFixOn = cboxIsAutoSwitchDualFixOn.Checked;
 
             Properties.Settings.Default.setGPS_isRTK_KillAutoSteer = mf.isRTK_KillAutosteer = cboxIsRTK_KillAutoSteer.Checked;
+            UpdateAutoSwitchDualFixSpeedUI();
             Properties.Settings.Default.Save();
         }
         private void rbtnHeadingFix_CheckedChanged(object sender, EventArgs e)
@@ -186,10 +188,35 @@ namespace AgOpenGPS
         {
             if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
-                Properties.Settings.Default.setAutoSwitchDualFixSpeed = ((double)nudAutoSwitchDualFixSpeed.Value);
-                mf.ahrs.autoSwitchDualFixSpeed = Properties.Settings.Default.setAutoSwitchDualFixSpeed;
+                // Always convert back to km/h
+                double input = (double)nudAutoSwitchDualFixSpeed.Value;
+                double kmh = mf.isMetric ? input : input * 1.60934;
+
+                Properties.Settings.Default.setAutoSwitchDualFixSpeed = kmh;
+                mf.ahrs.autoSwitchDualFixSpeed = kmh;
+
+                // UI resync
+                UpdateAutoSwitchDualFixSpeedUI();
             }
         }
+
+        private void UpdateAutoSwitchDualFixSpeedUI()
+        {
+            double speedKmh = Properties.Settings.Default.setAutoSwitchDualFixSpeed;
+
+            if (mf.isMetric)
+            {
+                labelAutoSwitchDualFixSpeed.Text = $"{gStr.gsAutoSwitchDualFixSpeed} (km/h)";
+                nudAutoSwitchDualFixSpeed.Value = (decimal)speedKmh;
+            }
+            else
+            {
+                double speedMph = speedKmh / 1.60934; // 1 mph = 1.60934 km/h
+                labelAutoSwitchDualFixSpeed.Text = $"{gStr.gsAutoSwitchDualFixSpeed} (mph)";
+                nudAutoSwitchDualFixSpeed.Value = (decimal)speedMph;
+            }
+        }
+
 
         private void SetAutoSwitchDualFixPanelOptions()
         {
@@ -381,6 +408,7 @@ namespace AgOpenGPS
             Properties.Settings.Default.setDisplay_isShutdownWhenNoPower = cboxShutdownWhenNoPower.Checked;
 
             Properties.Settings.Default.setDisplay_isHardwareMessages = cboxHardwareMessages.Checked;
+            UpdateAutoSwitchDualFixSpeedUI();
 
             Properties.Settings.Default.Save();
         }

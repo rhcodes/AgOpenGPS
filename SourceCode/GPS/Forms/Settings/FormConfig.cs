@@ -1,5 +1,6 @@
 ﻿//Please, if you use this, share the improvements
 
+using Accord.Math.Distances;
 using AgLibrary.Logging;
 using AgOpenGPS.Controls;
 using AgOpenGPS.Core.Translations;
@@ -245,9 +246,10 @@ namespace AgOpenGPS
             labelGuideLinesOnOff.Text = gStr.gsExtraGuideLines;
             labelSectionLinesOnOff.Text = gStr.gsSectionLines;
             labelElevationOnOff.Text = gStr.gsElevationlog;
+            labelElevationOnOff.Text = gStr.gsElevationlog;
             unitsGroupBox.Text = gStr.gsUnits;
             cboxIsAutoSwitchDualFixOn.Text = gStr.gsAutoSwitchDualFix;
-            labelAutoSwitchDualFixSpeed.Text = gStr.gsAutoSwitchDualFixSpeed;
+            labelAutoSwitchDualFixSpeed.Text = gStr.gsAutoSwitchDualFixSpeed + (mf.isMetric ? " (km/h)" : " (mph)");
 
             UpdateSummary();
 
