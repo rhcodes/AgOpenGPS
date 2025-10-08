@@ -110,7 +110,7 @@ namespace AgOpenGPS
 
             //tabTSections_Enter(this, e);
             lblVehicleToolWidth.Text = Convert.ToString((int)(mf.tool.width * 100 * mf.cm2CmOrIn));
-            SectionFeetInchesTotalWidthLabelUpdate();
+            SectionFeetInchesTotalWidthLabelUpdate(mf.isMetric, mf.tool.width);
 
             tab1.SelectedTab = tabSummary;
             //Label translations
@@ -361,7 +361,7 @@ namespace AgOpenGPS
 
         private void tabSummary_Enter(object sender, EventArgs e)
         {
-            SectionFeetInchesTotalWidthLabelUpdate();
+            SectionFeetInchesTotalWidthLabelUpdate(mf.isMetric, mf.tool.width);
             UpdateSummary();
         }
 

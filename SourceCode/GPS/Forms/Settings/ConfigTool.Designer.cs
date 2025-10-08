@@ -1118,7 +1118,7 @@ namespace AgOpenGPS
                 Properties.Settings.Default.Save();
 
                 lblVehicleToolWidth.Text = Convert.ToString((int)(numberOfSections * defaultSectionWidth * 100 * mf.cm2CmOrIn));
-                SectionFeetInchesTotalWidthLabelUpdate();
+                SectionFeetInchesTotalWidthLabelUpdate(mf.isMetric, mf.tool.width);
                 FillZoneNudsWithDefaultValues();
                 SetNudZoneVisibility();
             }
@@ -1311,43 +1311,17 @@ namespace AgOpenGPS
 
             lblVehicleToolWidth.Text = Convert.ToString((int)toolWidth);
 
-            SectionFeetInchesTotalWidthLabelUpdate();
+            SectionFeetInchesTotalWidthLabelUpdate(mf.isMetric, mf.tool.width);
         }
 
         //update tool width label at bottom of window
-        private void SectionFeetInchesTotalWidthLabelUpdate()
+        private void SectionFeetInchesTotalWidthLabelUpdate(bool isMetric, double toolWidthInMeters)
         {
-            if (mf.isMetric)
-            {
-                lblInchesCm.Text = gStr.gsCentimeters;
-                lblFeetMeters.Text = gStr.gsMeters;
-                lblSecTotalWidthFeet.Visible = false;
-                lblSecTotalWidthInches.Visible = false;
-                lblSecTotalWidthMeters.Visible = true;
-            }
-            else
-            {
-                lblInchesCm.Text = gStr.gsInches;
-                lblFeetMeters.Text = "Feet";
-                lblSecTotalWidthFeet.Visible = true;
-                lblSecTotalWidthInches.Visible = true;
-                lblSecTotalWidthMeters.Visible = false;
-            }
+            lblInchesCm.Text = isMetric ? gStr.gsCentimeters : gStr.gsInches;
+            lblFeetMeters.Text = isMetric ? gStr.gsMeters : "Feet";
 
-            if (mf.isMetric)
-            {
-                lblSecTotalWidthMeters.Text = ((int)(mf.tool.width * 100)).ToString() + " cm";
-                configSummaryControl.SetSummaryWidth(mf.tool.width.ToString("N2") + " m");
-            }
-            else
-            {
-                double toFeet = (Convert.ToDouble(lblVehicleToolWidth.Text) * 0.08334);
-                lblSecTotalWidthFeet.Text = Convert.ToString((int)toFeet) + "'";
-                double temp = Math.Round((toFeet - Math.Truncate(toFeet)) * 12, 0);
-                lblSecTotalWidthInches.Text = Convert.ToString(temp) + '"';
-
-                configSummaryControl.SetSummaryWidth(lblSecTotalWidthFeet.Text + " " + lblSecTotalWidthInches.Text);
-            }
+            lblSecTotalWidth.Text = Distance.MediumDistanceString(isMetric, toolWidthInMeters);
+            configSummaryControl.SetSummaryWidth(lblSecTotalWidth.Text);
         }
 
         //Convert section width to positions along toolbar
