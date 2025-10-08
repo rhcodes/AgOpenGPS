@@ -96,7 +96,6 @@ namespace AgOpenGPS
             this.rollCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.boundaryToolToolStripMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.eventViewerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.guidelinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SmoothABtoolStripMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteContourPathsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.webcamToolStrip = new System.Windows.Forms.ToolStripMenuItem();
@@ -968,7 +967,6 @@ namespace AgOpenGPS
             this.steerChartStripMenu,
             this.boundaryToolToolStripMenu,
             this.eventViewerToolStripMenuItem,
-            this.guidelinesToolStripMenuItem,
             this.SmoothABtoolStripMenu,
             this.deleteContourPathsToolStripMenuItem,
             this.webcamToolStrip,
@@ -1054,21 +1052,13 @@ namespace AgOpenGPS
             this.boundaryToolToolStripMenu.Click += new System.EventHandler(this.boundaryToolToolStripMenu_Click);
             // 
             // eventViewerToolStripMenuItem
-            // 
+            //
             this.eventViewerToolStripMenuItem.Image = global::AgOpenGPS.Properties.Resources.ABTracks;
             this.eventViewerToolStripMenuItem.Name = "eventViewerToolStripMenuItem";
             this.eventViewerToolStripMenuItem.Size = new System.Drawing.Size(450, 70);
             this.eventViewerToolStripMenuItem.Text = "Log Viewer";
             this.eventViewerToolStripMenuItem.Click += new System.EventHandler(this.eventViewerToolStripMenuItem_Click);
-            // 
-            // guidelinesToolStripMenuItem
-            // 
-            this.guidelinesToolStripMenuItem.Image = global::AgOpenGPS.Properties.Resources.ConD_ExtraGuides;
-            this.guidelinesToolStripMenuItem.Name = "guidelinesToolStripMenuItem";
-            this.guidelinesToolStripMenuItem.Size = new System.Drawing.Size(450, 70);
-            this.guidelinesToolStripMenuItem.Text = "Extra Guides";
-            this.guidelinesToolStripMenuItem.Click += new System.EventHandler(this.guidelinesToolStripMenuItem_Click);
-            // 
+            //
             // SmoothABtoolStripMenu
             // 
             this.SmoothABtoolStripMenu.Image = global::AgOpenGPS.Properties.Resources.ABSmooth;
@@ -3108,7 +3098,6 @@ namespace AgOpenGPS
         private System.Windows.Forms.Button btnChargeStatus;
         private System.Windows.Forms.Label lblHardwareMessage;
         private System.Windows.Forms.ToolStripMenuItem eventViewerToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem guidelinesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem tramsMultiMenuField;
         private System.Windows.Forms.ToolStripMenuItem AgShareApiMenuItem;
         private System.Windows.Forms.ToolStripMenuItem profileToolStripMenuItem;
