@@ -59,7 +59,7 @@
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -213,7 +213,7 @@ The order you push them will be the order they appear on the menu from bottom up
     <value>Auto Dual &lt;&gt; Fix</value>
   </data>
   <data name="gsAutoSwitchDualFixSpeed" xml:space="preserve">
-    <value>Switch speed (km/h)</value>
+    <value>Switch Speed</value>
   </data>
   <data name="gsBackground" xml:space="preserve">
     <value>Background</value>
@@ -933,7 +933,7 @@ The order you push them will be the order they appear on the menu from bottom up
     <value>Save and Return</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Time for a Beer! Goodbye!</value>
+    <value>See you next time!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Saving field..</value>

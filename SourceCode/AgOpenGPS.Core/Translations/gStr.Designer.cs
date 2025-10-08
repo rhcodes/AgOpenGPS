@@ -342,7 +342,7 @@ namespace AgOpenGPS.Core.Translations {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Switch speed (km/h).
+        ///   Looks up a localized string similar to Switch Speed.
         /// </summary>
         public static string gsAutoSwitchDualFixSpeed {
             get {
@@ -2502,7 +2502,7 @@ namespace AgOpenGPS.Core.Translations {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Time for a Beer! Goodbye!.
+        ///   Looks up a localized string similar to See you next time!.
         /// </summary>
         public static string gsSaveBeerTime {
             get {

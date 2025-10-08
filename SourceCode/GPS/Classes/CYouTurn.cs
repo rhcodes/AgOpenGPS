@@ -663,6 +663,13 @@ namespace AgOpenGPS
                     int cnt1 = ytList.Count;
                     int cnt2 = ytList2.Count;
 
+                    //Validate that both lists have elements to prevent crashes
+                    if (cnt1 == 0 || cnt2 == 0)
+                    {
+                        FailCreate();
+                        return false;
+                    }
+
                     //Find if the turn goes same way as turnline heading
                     bool isFirstTurnLineSameWay = true;
                     double firstHeadingDifference = Math.Abs(inClosestTurnPt.turnLineHeading - ytList[ytList.Count - 1].heading);
@@ -686,9 +693,9 @@ namespace AgOpenGPS
                     //is in and out on same segment? so only 1 segment
                     if (startClosestTurnPt.turnLineIndex == goalClosestTurnPt.turnLineIndex)
                     {
-                        for (int a = 0; a < cnt2; cnt2--)
+                        for (int a = 0; a < cnt2; a++)
                         {
-                            ytList.Add(new vec3(ytList2[cnt2 - 1]));
+                            ytList.Add(new vec3(ytList2[cnt2 - 1 - a]));
                         }
                     }
                     else
@@ -740,9 +747,9 @@ namespace AgOpenGPS
                         }
 
                         //add the out from ytList2
-                        for (int a = 0; a < cnt2; cnt2--)
+                        for (int a = 0; a < cnt2; a++)
                         {
-                            ytList.Add(new vec3(ytList2[cnt2 - 1]));
+                            ytList.Add(new vec3(ytList2[cnt2 - 1 - a]));
                         }
                     }
 
@@ -1069,6 +1076,13 @@ namespace AgOpenGPS
                     int cnt1 = ytList.Count;
                     int cnt2 = ytList2.Count;
 
+                    //Validate that both lists have elements to prevent crashes
+                    if (cnt1 == 0 || cnt2 == 0)
+                    {
+                        FailCreate();
+                        return false;
+                    }
+
                     //Find if the turn goes same way as turnline heading
                     bool isFirstTurnLineSameWay = true;
                     double firstHeadingDifference = Math.Abs(inClosestTurnPt.turnLineHeading - ytList[ytList.Count - 1].heading);
@@ -1093,9 +1107,9 @@ namespace AgOpenGPS
                     //is in and out on same segment? so only 1 segment
                     if (startClosestTurnPt.turnLineIndex == goalClosestTurnPt.turnLineIndex)
                     {
-                        for (int a = 0; a < cnt2; cnt2--)
+                        for (int a = 0; a < cnt2; a++)
                         {
-                            ytList.Add(new vec3(ytList2[cnt2 - 1]));
+                            ytList.Add(new vec3(ytList2[cnt2 - 1 - a]));
                         }
 
                     }
@@ -1149,9 +1163,9 @@ namespace AgOpenGPS
                         }
 
                         //add the out from ytList2
-                        for (int a = 0; a < cnt2; cnt2--)
+                        for (int a = 0; a < cnt2; a++)
                         {
-                            ytList.Add(new vec3(ytList2[cnt2 - 1]));
+                            ytList.Add(new vec3(ytList2[cnt2 - 1 - a]));
                         }
                     }
 

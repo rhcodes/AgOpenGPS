@@ -760,7 +760,7 @@
     <value>Сохранить и вернуться</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Время для пива! Пока!</value>
+    <value>Увидимся в следующий раз!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Сохранение поля..</value>
