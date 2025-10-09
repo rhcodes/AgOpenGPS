@@ -7,6 +7,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Drawing;
+using System.Globalization;
 using System.Text;
 using System.Windows.Forms;
 
@@ -2634,7 +2635,7 @@ namespace AgOpenGPS
 
             double iconWidth = 20.0 * scale;
             double iconHeight = 20.0 * scale;
-            double spacing = 8.0 * scale;
+            double spacing = 15.0 * scale;
 
             double padH = 12.0 * scale;
             double padV = 8.0 * scale;
@@ -2647,19 +2648,20 @@ namespace AgOpenGPS
                 double meters = bnd.HeadlandDistance.Value;
                 bool imperial = !isMetric;
 
-                // m -> inch = 39.3700787
-                double displayValue = imperial ? (meters * 39.3700787) : meters;
+                // m -> ft = 3.2808399
+                double displayValue = imperial ? (meters * 3.2808399) : meters;
 
-                // Formatting: keep one decimal for meters, no decimals for inches
-                string fmt = imperial ? "0" : "0.0";
-                string unit = imperial ? " IN" : " m";
+                // Formatting: two decimals for feet, one decimal for meters
+                string fmt = imperial ? "0.00" : "0.0";
+                string unit = imperial ? " ft" : " m";
 
-                label = displayValue.ToString(fmt) + unit;
+                label = displayValue.ToString(fmt, CultureInfo.InvariantCulture) + unit;
             }
             else
             {
                 label = "--";
             }
+
             // Measure content
             double textWidth = label.Length * charWidth;
             double contentWidth = iconWidth + spacing + textWidth;
@@ -2814,7 +2816,7 @@ namespace AgOpenGPS
 
             // --- Text next to icon, vertically centered in the box ---
             double textX = iconX + iconWidth + spacing;
-            double textY = boxY + (boxHeight - textLineHeight) * 0.1;
+            double textY = boxY + (boxHeight - textLineHeight) - 4;
 
             if (bnd.HeadlandDistance.HasValue && bnd.HeadlandDistance.Value > 20.0)
                 GL.Color3(0.0f, 0.9f, 0.0f);
