@@ -2452,6 +2452,7 @@ namespace AgOpenGPS
             mf.p_239.pgn[mf.p_239.uturn] = 0;
             isOutSameCurve = false;
             isGoingStraightThrough = false;
+            maxProgressIndexReached = 0;
         }
 
         public void FailCreate()
@@ -2562,6 +2563,7 @@ namespace AgOpenGPS
         }
 
         public int onA;
+        private int maxProgressIndexReached = 0;
 
         //determine distance from youTurn guidance line
         public bool DistanceFromYouTurnLine()
@@ -2577,7 +2579,10 @@ namespace AgOpenGPS
                     vec3 pivot = mf.steerAxlePos;
 
                     //find the closest 2 points to current fix
-                    for (int t = 0; t < ptCount; t++)
+                    //Start search from max progress minus small lookback to prevent jumping back to start
+                    //when start and end positions overlap
+                    int searchStartIndex = Math.Max(0, maxProgressIndexReached - 5);
+                    for (int t = searchStartIndex; t < ptCount; t++)
                     {
                         double dist = ((pivot.easting - ytList[t].easting) * (pivot.easting - ytList[t].easting))
                                         + ((pivot.northing - ytList[t].northing) * (pivot.northing - ytList[t].northing));
@@ -2625,8 +2630,16 @@ namespace AgOpenGPS
                     }
                     B = A + 1;
 
+                    // Track maximum progress through the path
+                    if (A > maxProgressIndexReached)
+                        maxProgressIndexReached = A;
+
+                    // Only complete if we've progressed through at least 50% of the path
+                    // This prevents premature completion when start and end positions are the same
+                    bool hasProgressedEnough = maxProgressIndexReached > (ptCount / 2);
+
                     //return and reset if too far away or end of the line
-                    if (B >= ptCount - 1)
+                    if (B >= ptCount - 1 && hasProgressedEnough)
                     {
                         CompleteYouTurn();
                         return false;
@@ -2691,7 +2704,10 @@ namespace AgOpenGPS
                     vec3 pivot = mf.pivotAxlePos;
 
                     //find the closest 2 points to current fix
-                    for (int t = 0; t < ptCount; t++)
+                    //Start search from max progress minus small lookback to prevent jumping back to start
+                    //when start and end positions overlap
+                    int searchStartIndex = Math.Max(0, maxProgressIndexReached - 5);
+                    for (int t = searchStartIndex; t < ptCount; t++)
                     {
                         double dist = ((pivot.easting - ytList[t].easting) * (pivot.easting - ytList[t].easting))
                                         + ((pivot.northing - ytList[t].northing) * (pivot.northing - ytList[t].northing));
@@ -2716,9 +2732,18 @@ namespace AgOpenGPS
                     }
 
                     onA = A;
+
+                    // Track maximum progress through the path
+                    if (A > maxProgressIndexReached)
+                        maxProgressIndexReached = A;
+
                     double distancePiv = glm.Distance(ytList[A], pivot);
 
-                    if ((A > 0 && distancePiv > 2) || (B >= ptCount - 1))
+                    // Only complete if we've progressed through at least 50% of the path
+                    // This prevents premature completion when start and end positions are the same
+                    bool hasProgressedEnough = maxProgressIndexReached > (ptCount / 2);
+
+                    if (((A > 0 && distancePiv > 2) || (B >= ptCount - 1)) && hasProgressedEnough)
                     {
                         CompleteYouTurn();
                         return false;
