@@ -439,7 +439,7 @@ namespace AgOpenGPS
 
                     if (camera.camSetDistance > -250)
                     {
-                        if (trk.idx > -1)
+                        if (trk.idx > -1 && !isStanleyUsed)
                         {
                             PointStyle backgroundPointStyle = new PointStyle(12.0f, Colors.Black);
                             PointStyle foregroundPointStyle = new PointStyle(6.0f, Colors.GoalPointColor);

@@ -1054,16 +1054,6 @@ namespace AgOpenGPS
                     for (int h = 0; h < curList.Count; h++) GL.Vertex3(curList[h].easting, curList[h].northing, 0);
                     GL.End();
 
-                    if (!mf.isStanleyUsed && mf.camera.camSetDistance > -200)
-                    {
-                        //Draw lookahead Point
-                        GL.PointSize(4.0f);
-                        GL.Begin(PrimitiveType.Points);
-                        GL.Color3(1.0f, 0.95f, 0.195f);
-                        GL.Vertex3(goalPointCu.easting, goalPointCu.northing, 0.0);
-                        GL.End();
-                    }
-
                     //GL.Disable(EnableCap.LineSmooth);
 
                     mf.yt.DrawYouTurn();
