@@ -84,7 +84,20 @@ namespace AgOpenGPS.Core.Models
                 return feet.ToString() + "' " + inches.ToString() + '"';
             }
         }
+        public static string ScalarDistanceString(bool isImperial, double distanceInMeters,
+            int decimalsFeet = 2, int decimalsMeters = 1)
+        {
+            string format = isImperial
+                ? "F" + decimalsFeet.ToString()
+                : "F" + decimalsMeters.ToString();
 
+            double displayValue = isImperial
+                ? distanceInMeters * metersToFeet
+                : distanceInMeters;
+
+            string unit = isImperial ? " ft" : " m";
+            return displayValue.ToString(format, System.Globalization.CultureInfo.CurrentUICulture) + unit;
+        }
     }
 
     public class Area

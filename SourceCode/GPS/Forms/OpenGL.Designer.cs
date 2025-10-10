@@ -2641,21 +2641,14 @@ namespace AgOpenGPS
             double padV = 8.0 * scale;
 
             // Build label in display units (metric = meters, imperial = inches)
-            // NOTE: bnd.HeadlandDistance is assumed to be meters internally.
             string label;
             if (bnd.HeadlandDistance.HasValue)
             {
                 double meters = bnd.HeadlandDistance.Value;
                 bool imperial = !isMetric;
 
-                // m -> ft = 3.2808399
-                double displayValue = imperial ? (meters * 3.2808399) : meters;
-
-                // Formatting: two decimals for feet, one decimal for meters
-                string fmt = imperial ? "0.00" : "0.0";
-                string unit = imperial ? " ft" : " m";
-
-                label = displayValue.ToString(fmt, CultureInfo.InvariantCulture) + unit;
+                // Show feet (2 decimals) or meters (1 decimal)
+                label = Distance.ScalarDistanceString(imperial, meters, 0, 1);
             }
             else
             {
