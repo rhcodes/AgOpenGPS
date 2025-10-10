@@ -167,9 +167,13 @@ namespace AgOpenGPS
 
                 // Ensure fenceLine exists and is empty
                 if (bnd.fenceLine == null)
+                {
                     bnd.fenceLine = new List<vec3>();
+                }
                 else
+                {
                     bnd.fenceLine.Clear();
+                }
 
                 // Inline conversion LocalPoint -> vec3 (heading will be recomputed)
                 for (int p = 0; p < ring.Count; p++)
@@ -185,7 +189,7 @@ namespace AgOpenGPS
                 bnd.FixFenceLine(i);
 
                 // Use the fixed/normalized fenceLine for output
-                int fixedCount = (bnd.fenceLine != null) ? bnd.fenceLine.Count : 0;
+                int fixedCount = bnd.fenceLine.Count;
                 lines.Add(fixedCount.ToString(CultureInfo.InvariantCulture));
 
                 for (int k = 0; k < fixedCount; k++)
