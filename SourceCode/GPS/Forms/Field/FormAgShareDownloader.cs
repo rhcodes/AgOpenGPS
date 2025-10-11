@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using AgOpenGPS.Classes.AgShare.Helpers;
 using System.Threading.Tasks;
 using System.IO;
+using AgOpenGPS.Core.Translations;
 
 namespace AgOpenGPS.Forms.Field
 {
@@ -26,6 +27,11 @@ namespace AgOpenGPS.Forms.Field
             downloader = new CAgShareDownloader();
             progressBarDownloadAll.Visible = false;
             lblDownloading.Visible = false;
+            chkForceOverwrite.Text = gStr.gsForceOverwrite;
+            btnSaveAll.Text = gStr.gsDownloadAll;
+            btnGetSelected.Text = gStr.gsGetSelected;
+            lblDownloading.Text = gStr.gsDownloading;
+            this.Text = gStr.gsAgShareDownloader;
 
         }
 
@@ -133,7 +139,7 @@ namespace AgOpenGPS.Forms.Field
             lblDownloading.Visible = true;
             btnSaveAll.Enabled = false;
             btnClose.Enabled = false;
-            btnOpen.Enabled = false;
+            btnGetSelected.Enabled = false;
             btnSaveAll.Enabled = false;
             chkForceOverwrite.Enabled = false;
             progressBarDownloadAll.Visible = true;
@@ -160,7 +166,7 @@ namespace AgOpenGPS.Forms.Field
             progressBarDownloadAll.Visible = false;
             lblDownloading.Visible = false;
             btnClose.Enabled = true;
-            btnOpen.Enabled = true;
+            btnGetSelected.Enabled = true;
             btnSaveAll.Enabled = true;
             chkForceOverwrite.Enabled = true;
 
@@ -270,5 +276,10 @@ namespace AgOpenGPS.Forms.Field
         }
 
         #endregion
+
+        private void glControl1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
