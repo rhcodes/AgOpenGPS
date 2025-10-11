@@ -1040,7 +1040,7 @@ namespace AgOpenGPS
             this.rollCheckToolStripMenuItem.Image = global::AgOpenGPS.Properties.Resources.ConS_SourcesRoll;
             this.rollCheckToolStripMenuItem.Name = "rollCheckToolStripMenuItem";
             this.rollCheckToolStripMenuItem.Size = new System.Drawing.Size(322, 44);
-            this.rollCheckToolStripMenuItem.Text = "Roll Check";
+            this.rollCheckToolStripMenuItem.Text = "Roll Correction Chart";
             this.rollCheckToolStripMenuItem.Click += new System.EventHandler(this.correctionToolStrip_Click);
             // 
             // boundaryToolToolStripMenu
