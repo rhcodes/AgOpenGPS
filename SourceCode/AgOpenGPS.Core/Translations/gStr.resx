@@ -1245,4 +1245,19 @@ USE AT OWN RISK.</value>
   <data name="v_AboutIntro" xml:space="preserve">
     <value>https://www.youtube.com/watch?v=iN2cZ8avHag</value>
   </data>
+  <data name="gsForceOverwrite" xml:space="preserve">
+    <value>Force Overwrite</value>
+  </data>
+  <data name="gsDownloadAll" xml:space="preserve">
+    <value>Get All</value>
+  </data>
+  <data name="gsGetSelected" xml:space="preserve">
+    <value>Get Selected</value>
+  </data>
+  <data name="gsDownloading" xml:space="preserve">
+    <value>Downloading...Please Wait</value>
+  </data>
+  <data name="gsAgShareDownloader" xml:space="preserve">
+    <value>Download Fields From AgShare</value>
+  </data>
 </root>
