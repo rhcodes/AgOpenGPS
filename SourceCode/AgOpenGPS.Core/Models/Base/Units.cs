@@ -103,4 +103,22 @@ namespace AgOpenGPS.Core.Models
         public double InAcres => _squareMetersToAcres * _areaInSquareMeters;
     }
 
+    public class Speed
+    {
+        private const double kmhToMph = 0.621371;
+        private const double mphToKmh = 1 / kmhToMph;
+
+        private double _speedInKmh;
+        public Speed(double speedInKmh)
+        {
+            _speedInKmh = speedInKmh;
+        }
+
+        public double InKmh => _speedInKmh;
+        public double InMph => _speedInKmh * kmhToMph;
+
+        public static double KmhToMph(double kmh) => kmh * kmhToMph;
+        public static double MphToKmh(double mph) => mph * mphToKmh;
+    }
+
 }
