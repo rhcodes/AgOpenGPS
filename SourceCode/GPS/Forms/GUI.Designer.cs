@@ -1413,7 +1413,7 @@ namespace AgOpenGPS
             else
             {
                 TimedMessageBox(2000, gStr.gsTooFast, gStr.gsSlowDownBelow + " "
-                    + (vehicle.functionSpeedLimit * 0.621371).ToString("N1") + " " + gStr.gsMPH);
+                    + Speed.KmhToMph(vehicle.functionSpeedLimit).ToString("N1") + " " + gStr.gsMPH);
             }
 
             Log.EventWriter("UTurn or Lateral Speed exceeded");
@@ -1517,9 +1517,9 @@ namespace AgOpenGPS
             get
             {
                 if (avgSpeed > 2)
-                    return (avgSpeed * 0.62137).ToString("N1");
+                    return Speed.KmhToMph(avgSpeed).ToString("N1");
                 else
-                    return (avgSpeed * 0.62137).ToString("N2");
+                    return Speed.KmhToMph(avgSpeed).ToString("N2");
             }
         }
         public string SpeedKPH
