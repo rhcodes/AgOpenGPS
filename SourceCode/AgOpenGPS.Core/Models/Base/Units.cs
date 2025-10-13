@@ -84,18 +84,19 @@ namespace AgOpenGPS.Core.Models
                 return feet.ToString() + "' " + inches.ToString() + '"';
             }
         }
-        public static string ScalarDistanceString(bool isImperial, double distanceInMeters,
+
+        public static string MediumBigDistanceString(bool isMetric, double distanceInMeters,
             int decimalsFeet = 2, int decimalsMeters = 1)
         {
-            string format = isImperial
-                ? "F" + decimalsFeet.ToString()
-                : "F" + decimalsMeters.ToString();
+            string format = isMetric
+                ? "F" + decimalsMeters.ToString()
+                : "F" + decimalsFeet.ToString();
 
-            double displayValue = isImperial
-                ? distanceInMeters * metersToFeet
-                : distanceInMeters;
+            double displayValue = isMetric
+                ? distanceInMeters
+                : distanceInMeters * metersToFeet;
 
-            string unit = isImperial ? " ft" : " m";
+            string unit = isMetric ? " m" : " ft";
             return displayValue.ToString(format, System.Globalization.CultureInfo.CurrentUICulture) + unit;
         }
     }

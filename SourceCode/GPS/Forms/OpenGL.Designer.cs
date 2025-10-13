@@ -2645,10 +2645,9 @@ namespace AgOpenGPS
             if (bnd.HeadlandDistance.HasValue)
             {
                 double meters = bnd.HeadlandDistance.Value;
-                bool imperial = !isMetric;
 
                 // Show feet (2 decimals) or meters (1 decimal)
-                label = Distance.ScalarDistanceString(imperial, meters, 0, 1);
+                label = Distance.MediumBigDistanceString(isMetric, meters, 0, 1);
             }
             else
             {
