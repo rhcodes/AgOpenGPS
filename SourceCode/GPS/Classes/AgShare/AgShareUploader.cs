@@ -66,17 +66,22 @@ namespace AgOpenGPS
         {
             try
             {
-                if (snapshot.Boundaries == null || snapshot.Boundaries.Count == 0)
-                    return;
-
-                List<CoordinateDto> outer = ConvertBoundary(snapshot.Boundaries[0], snapshot.Converter);
-                if (outer == null || outer.Count < 3) return;
+                // Allow upload even without boundary - boundary is optional
+                List<CoordinateDto> outer = new List<CoordinateDto>();
+                if (snapshot.Boundaries != null && snapshot.Boundaries.Count > 0)
+                {
+                    outer = ConvertBoundary(snapshot.Boundaries[0], snapshot.Converter);
+                    if (outer == null) outer = new List<CoordinateDto>();
+                }
 
                 List<List<CoordinateDto>> holes = new List<List<CoordinateDto>>();
-                for (int i = 1; i < snapshot.Boundaries.Count; i++)
+                if (snapshot.Boundaries != null)
                 {
-                    List<CoordinateDto> hole = ConvertBoundary(snapshot.Boundaries[i], snapshot.Converter);
-                    if (hole.Count >= 4) holes.Add(hole);
+                    for (int i = 1; i < snapshot.Boundaries.Count; i++)
+                    {
+                        List<CoordinateDto> hole = ConvertBoundary(snapshot.Boundaries[i], snapshot.Converter);
+                        if (hole != null && hole.Count >= 4) holes.Add(hole);
+                    }
                 }
 
                 List<AbLineUploadDto> abLines = ConvertAbLines(snapshot.Tracks, snapshot.Converter);
