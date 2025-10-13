@@ -1,5 +1,6 @@
 ﻿using AgLibrary.Logging;
 using AgOpenGPS.Controls;
+using AgOpenGPS.Core.Models;
 using AgOpenGPS.Core.Translations;
 using System;
 using System.Linq;
@@ -190,7 +191,7 @@ namespace AgOpenGPS
             {
                 // Always convert back to km/h
                 double input = (double)nudAutoSwitchDualFixSpeed.Value;
-                double kmh = mf.isMetric ? input : input * 1.60934;
+                double kmh = mf.isMetric ? input : Speed.MphToKmh(input);
 
                 Properties.Settings.Default.setAutoSwitchDualFixSpeed = kmh;
                 mf.ahrs.autoSwitchDualFixSpeed = kmh;
@@ -220,9 +221,9 @@ namespace AgOpenGPS
             }
             else
             {
-                displayValue = speedKmh / 1.60;
-                displayMin = minKmh / 1.60;
-                displayMax = maxKmh / 1.60;
+                displayValue = Speed.KmhToMph(speedKmh);
+                displayMin = Speed.KmhToMph(minKmh);
+                displayMax = Speed.KmhToMph(maxKmh);
                 unitText = "(mph)";
             }
 
