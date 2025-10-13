@@ -85,6 +85,20 @@ namespace AgOpenGPS.Core.Models
             }
         }
 
+        public static string MediumBigDistanceString(bool isMetric, double distanceInMeters,
+            int decimalsFeet = 2, int decimalsMeters = 1)
+        {
+            string format = isMetric
+                ? "F" + decimalsMeters.ToString()
+                : "F" + decimalsFeet.ToString();
+
+            double displayValue = isMetric
+                ? distanceInMeters
+                : distanceInMeters * metersToFeet;
+
+            string unit = isMetric ? " m" : " ft";
+            return displayValue.ToString(format, System.Globalization.CultureInfo.CurrentUICulture) + unit;
+        }
     }
 
     public class Area
