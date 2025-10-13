@@ -75,14 +75,15 @@
             this.glControl1.TabIndex = 3;
             this.glControl1.VSync = false;
             this.glControl1.Load += new System.EventHandler(this.glControl1_Load);
-            // 
+            //
             // lblSelectedField
-            // 
-            this.lblSelectedField.AutoSize = true;
+            //
+            this.lblSelectedField.AutoEllipsis = true;
+            this.lblSelectedField.AutoSize = false;
             this.lblSelectedField.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblSelectedField.Location = new System.Drawing.Point(12, 592);
             this.lblSelectedField.Name = "lblSelectedField";
-            this.lblSelectedField.Size = new System.Drawing.Size(170, 25);
+            this.lblSelectedField.Size = new System.Drawing.Size(460, 25);
             this.lblSelectedField.TabIndex = 5;
             this.lblSelectedField.Text = "Selected Field:";
             // 
