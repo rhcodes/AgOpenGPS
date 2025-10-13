@@ -202,8 +202,9 @@ namespace AgOpenGPS.Forms.Field
             double minX, minY, maxX, maxY;
             GetBounds(field.Boundaries, field.AbLines, out minX, out minY, out maxX, out maxY);
 
-            double marginX = (maxX - minX) * 0.05;
-            double marginY = (maxY - minY) * 0.05;
+            // Ensure non-zero margins even for vertical/horizontal lines or single points
+            double marginX = Math.Max((maxX - minX) * 0.05, 50);
+            double marginY = Math.Max((maxY - minY) * 0.05, 50);
 
             // Configure orthographic projection
             GL.MatrixMode(MatrixMode.Projection);
