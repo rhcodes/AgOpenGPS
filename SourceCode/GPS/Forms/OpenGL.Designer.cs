@@ -2547,7 +2547,7 @@ namespace AgOpenGPS
             ScreenTextures.Speedo.DrawCenteredAroundOrigin(new XyDelta(58, 58));
 
             // speedoSpeed is just a number without a unit
-            double speedoSpeed = Math.Abs(isMetric ? avgSpeed : avgSpeed * 0.62137);
+            double speedoSpeed = Math.Abs(isMetric ? avgSpeed : Speed.KmhToMph(avgSpeed));
             speedoSpeed = Math.Min(speedoSpeed, 20);
             double angle = (speedoSpeed - 10) * 15;
 

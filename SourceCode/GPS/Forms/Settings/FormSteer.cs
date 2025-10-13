@@ -1,5 +1,6 @@
 ﻿using AgLibrary.Logging;
 using AgOpenGPS.Controls;
+using AgOpenGPS.Core.Models;
 using AgOpenGPS.Core.Translations;
 using AgOpenGPS.Forms;
 using AgOpenGPS.Helpers;
@@ -667,9 +668,9 @@ namespace AgOpenGPS
             }
             else
             {
-                nudMaxSteerSpeed.Value = (decimal)(Properties.Settings.Default.setAS_maxSteerSpeed * 0.62137);
-                nudMinSteerSpeed.Value = (decimal)(Properties.Settings.Default.setAS_minSteerSpeed * 0.62137);
-                nudGuidanceSpeedLimit.Value = (decimal)(Properties.Settings.Default.setAS_functionSpeedLimit * 0.62137);
+                nudMaxSteerSpeed.Value = (decimal)Speed.KmhToMph(Properties.Settings.Default.setAS_maxSteerSpeed);
+                nudMinSteerSpeed.Value = (decimal)Speed.KmhToMph(Properties.Settings.Default.setAS_minSteerSpeed);
+                nudGuidanceSpeedLimit.Value = (decimal)Speed.KmhToMph(Properties.Settings.Default.setAS_functionSpeedLimit);
                 label160.Text = label163.Text = label166.Text = "mph";
             }
 
