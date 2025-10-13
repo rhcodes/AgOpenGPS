@@ -68,18 +68,22 @@ namespace AgOpenGPS
             {
                 // Allow upload even without boundary - boundary is optional
                 List<CoordinateDto> outer = new List<CoordinateDto>();
+                List<List<CoordinateDto>> holes = new List<List<CoordinateDto>>();
+
                 if (snapshot.Boundaries != null && snapshot.Boundaries.Count > 0)
                 {
-                    outer = ConvertBoundary(snapshot.Boundaries[0], snapshot.Converter);
-                    if (outer == null) outer = new List<CoordinateDto>();
-                }
-
-                List<List<CoordinateDto>> holes = new List<List<CoordinateDto>>();
-                if (snapshot.Boundaries != null)
-                {
-                    for (int i = 1; i < snapshot.Boundaries.Count; i++)
+                    // Convert first boundary as outer boundary
+                    var firstBoundary = snapshot.Boundaries.FirstOrDefault();
+                    if (firstBoundary != null)
                     {
-                        List<CoordinateDto> hole = ConvertBoundary(snapshot.Boundaries[i], snapshot.Converter);
+                        outer = ConvertBoundary(firstBoundary, snapshot.Converter);
+                        if (outer == null) outer = new List<CoordinateDto>();
+                    }
+
+                    // Convert remaining boundaries as holes
+                    foreach (var innerBoundary in snapshot.Boundaries.Skip(1))
+                    {
+                        List<CoordinateDto> hole = ConvertBoundary(innerBoundary, snapshot.Converter);
                         if (hole != null && hole.Count >= 4) holes.Add(hole);
                     }
                 }
