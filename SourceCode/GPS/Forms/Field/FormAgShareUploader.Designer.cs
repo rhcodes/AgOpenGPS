@@ -29,20 +29,21 @@ namespace AgOpenGPS.Forms
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
+            this.lblStatus = new System.Windows.Forms.Label();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.flpFieldList = new System.Windows.Forms.FlowLayoutPanel();
             this.btnClose = new System.Windows.Forms.Button();
             this.btnUpload = new System.Windows.Forms.Button();
             this.btnDeselectAll = new System.Windows.Forms.Button();
             this.btnSelectAll = new System.Windows.Forms.Button();
-            this.lblStatus = new System.Windows.Forms.Label();
-            this.progressBar = new System.Windows.Forms.ProgressBar();
-            this.flpFieldList = new System.Windows.Forms.FlowLayoutPanel();
-            this.lblTitle = new System.Windows.Forms.Label();
+            this.lblIcon = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.LightGray;
+            this.panel1.Controls.Add(this.lblIcon);
             this.panel1.Controls.Add(this.btnClose);
             this.panel1.Controls.Add(this.btnUpload);
             this.panel1.Controls.Add(this.btnDeselectAll);
@@ -50,12 +51,41 @@ namespace AgOpenGPS.Forms
             this.panel1.Controls.Add(this.lblStatus);
             this.panel1.Controls.Add(this.progressBar);
             this.panel1.Controls.Add(this.flpFieldList);
-            this.panel1.Controls.Add(this.lblTitle);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(10, 10);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(980, 740);
             this.panel1.TabIndex = 0;
+            // 
+            // lblStatus
+            // 
+            this.lblStatus.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblStatus.Location = new System.Drawing.Point(20, 654);
+            this.lblStatus.Name = "lblStatus";
+            this.lblStatus.Size = new System.Drawing.Size(740, 25);
+            this.lblStatus.TabIndex = 4;
+            this.lblStatus.Text = "Ready";
+            this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // progressBar
+            // 
+            this.progressBar.Location = new System.Drawing.Point(20, 684);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(740, 40);
+            this.progressBar.TabIndex = 3;
+            // 
+            // flpFieldList
+            // 
+            this.flpFieldList.AutoScroll = true;
+            this.flpFieldList.BackColor = System.Drawing.Color.LightGreen;
+            this.flpFieldList.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.flpFieldList.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.flpFieldList.Font = new System.Drawing.Font("Tahoma", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.flpFieldList.Location = new System.Drawing.Point(20, 19);
+            this.flpFieldList.Name = "flpFieldList";
+            this.flpFieldList.Size = new System.Drawing.Size(934, 535);
+            this.flpFieldList.TabIndex = 1;
+            this.flpFieldList.WrapContents = false;
             // 
             // btnClose
             // 
@@ -93,68 +123,43 @@ namespace AgOpenGPS.Forms
             // btnDeselectAll
             // 
             this.btnDeselectAll.BackColor = System.Drawing.Color.Transparent;
+            this.btnDeselectAll.FlatAppearance.BorderSize = 0;
             this.btnDeselectAll.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDeselectAll.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnDeselectAll.Location = new System.Drawing.Point(242, 574);
+            this.btnDeselectAll.Image = global::AgOpenGPS.Properties.Resources.DeselectAll;
+            this.btnDeselectAll.Location = new System.Drawing.Point(212, 574);
             this.btnDeselectAll.Name = "btnDeselectAll";
-            this.btnDeselectAll.Size = new System.Drawing.Size(170, 77);
+            this.btnDeselectAll.Size = new System.Drawing.Size(118, 77);
             this.btnDeselectAll.TabIndex = 6;
             this.btnDeselectAll.Text = "Deselect All";
+            this.btnDeselectAll.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.btnDeselectAll.UseVisualStyleBackColor = false;
             this.btnDeselectAll.Click += new System.EventHandler(this.btnDeselectAll_Click);
             // 
             // btnSelectAll
             // 
             this.btnSelectAll.BackColor = System.Drawing.Color.Transparent;
+            this.btnSelectAll.FlatAppearance.BorderSize = 0;
             this.btnSelectAll.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSelectAll.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSelectAll.Location = new System.Drawing.Point(20, 574);
+            this.btnSelectAll.Image = global::AgOpenGPS.Properties.Resources.SelectAll;
+            this.btnSelectAll.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnSelectAll.Location = new System.Drawing.Point(44, 574);
             this.btnSelectAll.Name = "btnSelectAll";
-            this.btnSelectAll.Size = new System.Drawing.Size(170, 77);
+            this.btnSelectAll.Size = new System.Drawing.Size(118, 77);
             this.btnSelectAll.TabIndex = 5;
             this.btnSelectAll.Text = "Select All";
+            this.btnSelectAll.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.btnSelectAll.UseVisualStyleBackColor = false;
             this.btnSelectAll.Click += new System.EventHandler(this.btnSelectAll_Click);
             // 
-            // lblStatus
+            // lblIcon
             // 
-            this.lblStatus.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblStatus.Location = new System.Drawing.Point(20, 654);
-            this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(740, 25);
-            this.lblStatus.TabIndex = 4;
-            this.lblStatus.Text = "Ready";
-            this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // progressBar
-            // 
-            this.progressBar.Location = new System.Drawing.Point(20, 684);
-            this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(740, 40);
-            this.progressBar.TabIndex = 3;
-            // 
-            // flpFieldList
-            // 
-            this.flpFieldList.AutoScroll = true;
-            this.flpFieldList.BackColor = System.Drawing.Color.White;
-            this.flpFieldList.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.flpFieldList.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flpFieldList.Font = new System.Drawing.Font("Tahoma", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.flpFieldList.Location = new System.Drawing.Point(20, 70);
-            this.flpFieldList.Name = "flpFieldList";
-            this.flpFieldList.Size = new System.Drawing.Size(934, 484);
-            this.flpFieldList.TabIndex = 1;
-            this.flpFieldList.WrapContents = false;
-            // 
-            // lblTitle
-            // 
-            this.lblTitle.Font = new System.Drawing.Font("Tahoma", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitle.Location = new System.Drawing.Point(20, 15);
-            this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(934, 40);
-            this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "AgShare Bulk Upload";
-            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblIcon.Image = global::AgOpenGPS.Properties.Resources.AgShare;
+            this.lblIcon.Location = new System.Drawing.Point(912, 675);
+            this.lblIcon.Name = "lblIcon";
+            this.lblIcon.Size = new System.Drawing.Size(64, 64);
+            this.lblIcon.TabIndex = 9;
             // 
             // FormAgShareBulkUploader
             // 
@@ -164,12 +169,12 @@ namespace AgOpenGPS.Forms
             this.ClientSize = new System.Drawing.Size(1000, 760);
             this.ControlBox = false;
             this.Controls.Add(this.panel1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Name = "FormAgShareBulkUploader";
             this.Padding = new System.Windows.Forms.Padding(10);
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "AgShare Bulk Upload";
+            this.Text = "AgShare Upload";
             this.Load += new System.EventHandler(this.FormAgShareBulkUploader_Load);
             this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -179,7 +184,6 @@ namespace AgOpenGPS.Forms
         #endregion
 
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.FlowLayoutPanel flpFieldList;
         private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Label lblStatus;
@@ -187,5 +191,6 @@ namespace AgOpenGPS.Forms
         private System.Windows.Forms.Button btnDeselectAll;
         private System.Windows.Forms.Button btnUpload;
         private System.Windows.Forms.Button btnClose;
+        private System.Windows.Forms.Label lblIcon;
     }
 }

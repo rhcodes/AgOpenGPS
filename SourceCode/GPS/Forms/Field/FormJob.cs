@@ -282,7 +282,7 @@ namespace AgOpenGPS
                 return;
             }
 
-            using (var form = new FormAgShareBulkUploader())
+            using (var form = new FormAgShareUploader())
             {
                 form.ShowDialog(this);
             }
