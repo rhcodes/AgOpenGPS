@@ -13,16 +13,14 @@ namespace AgOpenGPS.Forms
 {
     public partial class FormAgShareBulkUploader : Form
     {
-        private readonly FormGPS mf;
         private readonly AgShareClient agShareClient;
         private List<FieldInfo> availableFields;
         private bool isUploading = false;
 
-        public FormAgShareBulkUploader(FormGPS formGps)
+        public FormAgShareBulkUploader()
         {
             InitializeComponent();
-            mf = formGps;
-            // Create AgShareClient using settings, similar to how FormGPS does it
+            // Create AgShareClient using settings directly
             agShareClient = new AgShareClient(
                 Properties.Settings.Default.AgShareServer,
                 Properties.Settings.Default.AgShareApiKey);
@@ -139,7 +137,7 @@ namespace AgOpenGPS.Forms
         {
             if (isUploading)
             {
-                MessageBox.Show("Upload already in progress", "Please Wait", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                FormDialog.Show("Please Wait", "Upload already in progress", MessageBoxButtons.OK);
                 return;
             }
 
@@ -155,18 +153,17 @@ namespace AgOpenGPS.Forms
 
             if (selectedFields.Count == 0)
             {
-                MessageBox.Show("Please select at least one field to upload", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                FormDialog.Show("No Selection", "Please select at least one field to upload", MessageBoxButtons.OK);
                 return;
             }
 
             // Confirm upload
-            DialogResult result = MessageBox.Show(
-                $"Upload {selectedFields.Count} field(s) to AgShare?",
+            DialogResult result = FormDialog.Show(
                 "Confirm Upload",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+                $"Upload {selectedFields.Count} field(s) to AgShare?",
+                MessageBoxButtons.YesNo);
 
-            if (result != DialogResult.Yes)
+            if (result != DialogResult.OK)
                 return;
 
             await PerformBulkUpload(selectedFields);
@@ -213,11 +210,10 @@ namespace AgOpenGPS.Forms
 
                 // Show summary
                 lblStatus.Text = $"Upload complete: {successCount} succeeded, {failCount} failed";
-                MessageBox.Show(
-                    $"Upload Complete\n\nSuccessful: {successCount}\nFailed: {failCount}",
+                FormDialog.Show(
                     "Upload Complete",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                    $"Upload Complete\n\nSuccessful: {successCount}\nFailed: {failCount}",
+                    MessageBoxButtons.OK);
             }
             finally
             {
@@ -240,7 +236,7 @@ namespace AgOpenGPS.Forms
             }
 
             // Use existing upload logic
-            await CAgShareUploader.UploadAsync(snapshot, agShareClient, mf);
+            await CAgShareUploader.UploadAsync(snapshot, agShareClient, null);
         }
 
         private async Task<FieldSnapshot> LoadFieldSnapshot(FieldInfo fieldInfo)
@@ -311,7 +307,7 @@ namespace AgOpenGPS.Forms
         {
             if (isUploading)
             {
-                MessageBox.Show("Please wait for upload to complete", "Upload in Progress", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                FormDialog.Show("Upload in Progress", "Please wait for upload to complete", MessageBoxButtons.OK);
                 return;
             }
 
