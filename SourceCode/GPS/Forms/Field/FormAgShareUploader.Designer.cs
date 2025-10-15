@@ -1,6 +1,6 @@
 namespace AgOpenGPS.Forms
 {
-    partial class FormAgShareBulkUploader
+    partial class FormAgShareUploader
     {
         /// <summary>
         /// Required designer variable.
@@ -36,14 +36,12 @@ namespace AgOpenGPS.Forms
             this.btnUpload = new System.Windows.Forms.Button();
             this.btnDeselectAll = new System.Windows.Forms.Button();
             this.btnSelectAll = new System.Windows.Forms.Button();
-            this.lblIcon = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.LightGray;
-            this.panel1.Controls.Add(this.lblIcon);
             this.panel1.Controls.Add(this.btnClose);
             this.panel1.Controls.Add(this.btnUpload);
             this.panel1.Controls.Add(this.btnDeselectAll);
@@ -108,14 +106,14 @@ namespace AgOpenGPS.Forms
             this.btnUpload.BackColor = System.Drawing.Color.Transparent;
             this.btnUpload.FlatAppearance.BorderSize = 0;
             this.btnUpload.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnUpload.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnUpload.Image = global::AgOpenGPS.Properties.Resources.FileSaveAs;
+            this.btnUpload.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnUpload.Image = global::AgOpenGPS.Properties.Resources.SaveToCloud;
             this.btnUpload.Location = new System.Drawing.Point(598, 574);
             this.btnUpload.Name = "btnUpload";
             this.btnUpload.Size = new System.Drawing.Size(180, 92);
             this.btnUpload.TabIndex = 7;
             this.btnUpload.Text = "Upload Selected";
-            this.btnUpload.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
+            this.btnUpload.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnUpload.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.btnUpload.UseVisualStyleBackColor = false;
             this.btnUpload.Click += new System.EventHandler(this.btnUpload_Click);
@@ -127,9 +125,9 @@ namespace AgOpenGPS.Forms
             this.btnDeselectAll.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDeselectAll.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnDeselectAll.Image = global::AgOpenGPS.Properties.Resources.DeselectAll;
-            this.btnDeselectAll.Location = new System.Drawing.Point(212, 574);
+            this.btnDeselectAll.Location = new System.Drawing.Point(212, 560);
             this.btnDeselectAll.Name = "btnDeselectAll";
-            this.btnDeselectAll.Size = new System.Drawing.Size(118, 77);
+            this.btnDeselectAll.Size = new System.Drawing.Size(118, 91);
             this.btnDeselectAll.TabIndex = 6;
             this.btnDeselectAll.Text = "Deselect All";
             this.btnDeselectAll.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
@@ -144,24 +142,16 @@ namespace AgOpenGPS.Forms
             this.btnSelectAll.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnSelectAll.Image = global::AgOpenGPS.Properties.Resources.SelectAll;
             this.btnSelectAll.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnSelectAll.Location = new System.Drawing.Point(44, 574);
+            this.btnSelectAll.Location = new System.Drawing.Point(44, 560);
             this.btnSelectAll.Name = "btnSelectAll";
-            this.btnSelectAll.Size = new System.Drawing.Size(118, 77);
+            this.btnSelectAll.Size = new System.Drawing.Size(118, 91);
             this.btnSelectAll.TabIndex = 5;
             this.btnSelectAll.Text = "Select All";
             this.btnSelectAll.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.btnSelectAll.UseVisualStyleBackColor = false;
             this.btnSelectAll.Click += new System.EventHandler(this.btnSelectAll_Click);
             // 
-            // lblIcon
-            // 
-            this.lblIcon.Image = global::AgOpenGPS.Properties.Resources.AgShare;
-            this.lblIcon.Location = new System.Drawing.Point(912, 675);
-            this.lblIcon.Name = "lblIcon";
-            this.lblIcon.Size = new System.Drawing.Size(64, 64);
-            this.lblIcon.TabIndex = 9;
-            // 
-            // FormAgShareBulkUploader
+            // FormAgShareUploader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -170,7 +160,7 @@ namespace AgOpenGPS.Forms
             this.ControlBox = false;
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
-            this.Name = "FormAgShareBulkUploader";
+            this.Name = "FormAgShareUploader";
             this.Padding = new System.Windows.Forms.Padding(10);
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -191,6 +181,5 @@ namespace AgOpenGPS.Forms
         private System.Windows.Forms.Button btnDeselectAll;
         private System.Windows.Forms.Button btnUpload;
         private System.Windows.Forms.Button btnClose;
-        private System.Windows.Forms.Label lblIcon;
     }
 }

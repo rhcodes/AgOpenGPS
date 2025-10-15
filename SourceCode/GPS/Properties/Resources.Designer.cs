@@ -2487,6 +2487,16 @@ namespace AgOpenGPS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap SaveToCloud {
+            get {
+                object obj = ResourceManager.GetObject("SaveToCloud", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Screen2PNG {
             get {
                 object obj = ResourceManager.GetObject("Screen2PNG", resourceCulture);

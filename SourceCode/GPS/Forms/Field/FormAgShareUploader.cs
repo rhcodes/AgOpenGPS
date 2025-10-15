@@ -11,13 +11,13 @@ using AgOpenGPS.IO;
 
 namespace AgOpenGPS.Forms
 {
-    public partial class FormAgShareBulkUploader : Form
+    public partial class FormAgShareUploader : Form
     {
         private readonly AgShareClient agShareClient;
         private List<FieldInfo> availableFields;
         private bool isUploading = false;
 
-        public FormAgShareBulkUploader()
+        public FormAgShareUploader()
         {
             InitializeComponent();
             // Create AgShareClient using settings directly
