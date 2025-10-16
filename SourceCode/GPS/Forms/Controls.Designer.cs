@@ -168,7 +168,7 @@ namespace AgOpenGPS
                     if (isMetric)
                         TimedMessageBox(3000, "AutoSteer Disabled", "Above Maximum Safe Steering Speed: " + vehicle.maxSteerSpeed.ToString("N0") + " Kmh");
                     else
-                        TimedMessageBox(3000, "AutoSteer Disabled", "Above Maximum Safe Steering Speed: " + (vehicle.maxSteerSpeed * 0.621371).ToString("N1") + " MPH");
+                        TimedMessageBox(3000, "AutoSteer Disabled", "Above Maximum Safe Steering Speed: " + Speed.KmhToMph(vehicle.maxSteerSpeed).ToString("N1") + " MPH");
 
                     return;
                 }
@@ -1792,15 +1792,6 @@ namespace AgOpenGPS
         {
             Form form = new FormAllSettings(this);
             form.Show(this);
-        }
-        private void guidelinesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            isSideGuideLines = !isSideGuideLines;
-            if (isSideGuideLines) guidelinesToolStripMenuItem.Checked = true;
-            else guidelinesToolStripMenuItem.Checked = false;
-
-            Properties.Settings.Default.setMenu_isSideGuideLines = isSideGuideLines;
-            Properties.Settings.Default.Save();
         }
         private void boundaryToolToolStripMenu_Click(object sender, EventArgs e)
         {

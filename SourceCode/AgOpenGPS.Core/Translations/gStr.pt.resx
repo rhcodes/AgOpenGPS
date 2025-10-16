@@ -59,7 +59,7 @@
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -117,8 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="gsABDraw" xml:space="preserve">
+    <value>Desenhe AB - Clique em 2 pontos no limite para começar</value>
+  </data>
   <data name="gsABline" xml:space="preserve">
     <value>Linha AB</value>
+  </data>
+  <data name="gsAPlus" xml:space="preserve">
+    <value>A+</value>
   </data>
   <data name="gsAbout" xml:space="preserve">
     <value>Sobre...</value>
@@ -457,7 +463,7 @@
     <value>Salvar e retornar</value>
   </data>
   <data name="gsSaveBeerTime" xml:space="preserve">
-    <value>Hora de uma cerveja! Tchau!</value>
+    <value>Até a próxima!</value>
   </data>
   <data name="gsSaveField" xml:space="preserve">
     <value>Salvando campo..</value>
@@ -564,10 +570,20 @@
   <data name="gsXTEChart" xml:space="preserve">
     <value>Gráfico XTE</value>
   </data>
-  <data name="gsAPlus" xml:space="preserve">
-    <value>A+</value>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="gsForceOverwrite" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="gsABDraw" xml:space="preserve">
-    <value>Desenhe AB - Clique em 2 pontos no limite para começar</value>
+  <data name="gsDownloadAll" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="gsGetSelected" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="gsDownloading" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="gsAgShareDownloader" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
 </root>

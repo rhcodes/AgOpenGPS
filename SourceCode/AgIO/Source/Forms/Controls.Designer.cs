@@ -146,7 +146,7 @@ namespace AgIO
 
         private void btnExit_Click(object sender, EventArgs e)
         {
-            using (var dlg = new FormYes("!!! This will stop communicating with Hardware, Are you Sure? !!!", true))
+            using (var dlg = new FormYes("Warning: Closing AgIO will stop communication with hardware.\r\nAre you sure you want to close?", true))
             {
                 var result = dlg.ShowDialog(this);
 
