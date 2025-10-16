@@ -2,6 +2,7 @@
 using AgOpenGPS.Core.Models;
 using AgOpenGPS.Core.Streamers;
 using AgOpenGPS.Core.Translations;
+using AgOpenGPS.Forms;
 using AgOpenGPS.Forms.Field;
 using AgOpenGPS.Helpers;
 using System;
@@ -265,6 +266,23 @@ namespace AgOpenGPS
         private void btnJobAgShare_Click(object sender, EventArgs e)
         {
             using (var form = new FormAgShareDownloader(mf))
+            {
+                form.ShowDialog(this);
+            }
+
+            DialogResult = DialogResult.Ignore;
+            Close();
+        }
+
+        private void btnAgShareBulkUpload_Click(object sender, EventArgs e)
+        {
+            if (mf.isJobStarted)
+            {
+                mf.TimedMessageBox(2000, gStr.gsError, gStr.gsCloseFieldFirst);
+                return;
+            }
+
+            using (var form = new FormAgShareUploader())
             {
                 form.ShowDialog(this);
             }
