@@ -640,12 +640,8 @@ namespace AgOpenGPS
 
                     if (leftMouseDownOnOpenGL) MakeFlagMark();
 
-                    //5 hz sections
-                    if (bbCounter++ > 0)
-                        bbCounter = 0;
-
                     //draw the section control window off screen buffer
-                    if (isJobStarted && (bbCounter == 0))
+                    if (isJobStarted)
                     {
                         oglBack.Refresh();
 
@@ -735,8 +731,6 @@ namespace AgOpenGPS
 
             }
         }
-
-        private int bbCounter = 0;
 
         private void oglBack_Load(object sender, EventArgs e)
         {
@@ -1385,6 +1379,9 @@ namespace AgOpenGPS
             //send the byte out to section machines
             BuildMachineByte();
 
+            //stop the timer and calc how long it took to do calcs and draw
+            frameTimeRough = (double)(swFrame.ElapsedTicks * 1000) / (double)System.Diagnostics.Stopwatch.Frequency;
+
             ////Paint to context for troubleshooting
             //oglBack.MakeCurrent();
             //oglBack.SwapBuffers();
@@ -1393,7 +1390,10 @@ namespace AgOpenGPS
             if (fileSaveAlwaysCounter > 60)
             {
                 fileSaveAlwaysCounter = 0;
-                //if (sbMissedSentence.Length > 0) FileSaveMissedEvents();
+                if (Log.sbEvents.Length > 0)
+                {
+                    Log.FileSaveSystemEvents();
+                }
             }
 
             //if a minute has elapsed save the field in case of crash and to be able to resume            
