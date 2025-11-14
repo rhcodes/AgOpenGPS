@@ -1992,7 +1992,7 @@ namespace AgOpenGPS
             this.copyTracksToolStripMenuItem.Image = global::AgOpenGPS.Properties.Resources.FileNew;
             this.copyTracksToolStripMenuItem.Name = "copyTracksToolStripMenuItem";
             this.copyTracksToolStripMenuItem.Size = new System.Drawing.Size(445, 70);
-            this.copyTracksToolStripMenuItem.Text = "Copy Tracks";
+            this.copyTracksToolStripMenuItem.Text = "Import Tracks";
             this.copyTracksToolStripMenuItem.Click += new System.EventHandler(this.copyTracksToolStripMenuItem_Click);
             //
             // lblCurrentField

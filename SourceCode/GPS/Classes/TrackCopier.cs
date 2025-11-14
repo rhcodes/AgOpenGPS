@@ -19,7 +19,7 @@ namespace AgOpenGPS
         /// <param name="targetFieldDirectory">Target field directory path</param>
         /// <param name="sharedFieldProperties">Shared field properties for coordinate conversion</param>
         /// <returns>List of converted tracks</returns>
-        public static List<CTrk> ConvertTracks(
+        private static List<CTrk> ConvertTracks(
             List<CTrk> tracks,
             string sourceFieldDirectory,
             string targetFieldDirectory,

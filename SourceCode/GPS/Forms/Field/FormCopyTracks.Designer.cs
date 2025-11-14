@@ -207,7 +207,7 @@ namespace AgOpenGPS.Forms.Field
             this.Padding = new System.Windows.Forms.Padding(10);
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Copy Tracks From Another Field";
+            this.Text = "Import Tracks From Another Field";
             this.Load += new System.EventHandler(this.FormCopyTracks_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

@@ -17,15 +17,11 @@ namespace AgOpenGPS.Forms.Field
     {
         private readonly FormGPS mf;
         private string selectedFieldDirectory;
-        private List<CTrk> availableTracks;
-        private List<FieldDescription> availableFields;
 
         public FormCopyTracks(FormGPS gpsContext)
         {
             InitializeComponent();
             mf = gpsContext;
-            availableTracks = new List<CTrk>();
-            availableFields = new List<FieldDescription>();
         }
 
         private void FormCopyTracks_Load(object sender, EventArgs e)
@@ -47,9 +43,6 @@ namespace AgOpenGPS.Forms.Field
                 var fieldDirs = Directory.GetDirectories(fieldsDir);
                 lbFields.BeginUpdate();
                 lbFields.Items.Clear();
-                availableFields.Clear();
-
-                string currentFieldFullPath = Path.Combine(fieldsDir, mf.currentFieldDirectory ?? "");
 
                 foreach (var fieldDir in fieldDirs)
                 {
@@ -57,41 +50,29 @@ namespace AgOpenGPS.Forms.Field
                     string fieldFile = Path.Combine(fieldDir, "Field.txt");
                     string trackFile = Path.Combine(fieldDir, "TrackLines.txt");
 
-                    if (File.Exists(fieldFile) && File.Exists(trackFile))
-                    {
-                        // Don't show the current field in the list
-                        if (mf.currentFieldDirectory != null &&
-                            Path.GetFullPath(fieldDir) == Path.GetFullPath(currentFieldFullPath))
-                            continue;
+                    if (!File.Exists(fieldFile) || !File.Exists(trackFile))
+                        continue;
 
-                        var fieldDirInfo = new DirectoryInfo(fieldDir);
+                    // Don't show the current field in the list
+                    string fieldName = Path.GetFileName(fieldDir);
+                    if (mf.currentFieldDirectory != null && fieldName == mf.currentFieldDirectory)
+                        continue;
 
-                        // Try to load field info
-                        Wgs84? wgs84Start = null;
-                        try
-                        {
-                            wgs84Start = FieldPlaneFiles.LoadOrigin(fieldDir);
-                        }
-                        catch { }
-
-                        var fieldDescription = new FieldDescription(fieldDirInfo, wgs84Start, null);
-                        availableFields.Add(fieldDescription);
-
-                        var item = new ListViewItem(fieldDescription.Name);
-                        item.Tag = fieldDescription;
-                        lbFields.Items.Add(item);
-                    }
+                    var fieldDirInfo = new DirectoryInfo(fieldDir);
+                    var item = new ListViewItem(fieldDirInfo.Name);
+                    item.Tag = fieldDirInfo;
+                    lbFields.Items.Add(item);
                 }
 
                 lbFields.EndUpdate();
-                lblStatus.Text = $"Found {availableFields.Count} field(s) with tracks";
+                lblStatus.Text = $"Found {lbFields.Items.Count} field(s) with tracks";
 
                 if (lbFields.Items.Count > 0)
                     lbFields.Items[0].Selected = true;
             }
             catch (Exception ex)
             {
-                mf.TimedMessageBox(2000, "Copy Tracks", "Failed to load field list: " + ex.Message);
+                mf.TimedMessageBox(2000, "Import Tracks", "Failed to load field list: " + ex.Message);
                 lblStatus.Text = "Error loading fields";
             }
         }
@@ -101,10 +82,10 @@ namespace AgOpenGPS.Forms.Field
             if (lbFields.SelectedItems.Count == 0) return;
 
             var selectedItem = lbFields.SelectedItems[0];
-            if (selectedItem.Tag is FieldDescription fieldDescription)
+            if (selectedItem.Tag is DirectoryInfo fieldDirInfo)
             {
-                selectedFieldDirectory = fieldDescription.FieldDirectory.FullName;
-                LoadTracksFromField(fieldDescription.FieldDirectory.FullName);
+                selectedFieldDirectory = fieldDirInfo.FullName;
+                LoadTracksFromField(fieldDirInfo.FullName);
             }
         }
 
@@ -112,7 +93,7 @@ namespace AgOpenGPS.Forms.Field
         {
             try
             {
-                availableTracks = TrackFiles.Load(fieldDirectory);
+                var availableTracks = TrackFiles.Load(fieldDirectory);
                 flpTrackList.Controls.Clear();
 
                 if (availableTracks.Count == 0)
@@ -132,11 +113,11 @@ namespace AgOpenGPS.Forms.Field
                     flpTrackList.Controls.Add(checkbox);
                 }
 
-                lblStatus.Text = $"{availableTracks.Count} track(s) available for copying";
+                lblStatus.Text = $"{flpTrackList.Controls.Count} track(s) available for importing";
             }
             catch (Exception ex)
             {
-                mf.TimedMessageBox(2000, "Copy Tracks", "Failed to load tracks: " + ex.Message);
+                mf.TimedMessageBox(2000, "Import Tracks", "Failed to load tracks: " + ex.Message);
                 lblStatus.Text = "Error loading tracks";
             }
         }
@@ -203,7 +184,7 @@ namespace AgOpenGPS.Forms.Field
                 // Check if a field is selected
                 if (string.IsNullOrEmpty(selectedFieldDirectory))
                 {
-                    mf.TimedMessageBox(2000, "Copy Tracks", "Please select a field first.");
+                    mf.TimedMessageBox(2000, "Import Tracks", "Please select a field first.");
                     return;
                 }
 
@@ -219,14 +200,14 @@ namespace AgOpenGPS.Forms.Field
 
                 if (selectedTracks.Count == 0)
                 {
-                    mf.TimedMessageBox(2000, "Copy Tracks", "Please select at least one track to copy.");
+                    mf.TimedMessageBox(2000, "Import Tracks", "Please select at least one track to import.");
                     return;
                 }
 
                 // Verify current field is open
                 if (string.IsNullOrEmpty(mf.currentFieldDirectory))
                 {
-                    mf.TimedMessageBox(2000, "Copy Tracks", "No field is currently open.");
+                    mf.TimedMessageBox(2000, "Import Tracks", "No field is currently open.");
                     return;
                 }
 
@@ -257,17 +238,15 @@ namespace AgOpenGPS.Forms.Field
                 mf.trk.idx = -1;
                 mf.FileLoadTracks();
 
-                lblStatus.Text = $"Successfully copied {copiedCount} track(s)";
+                lblStatus.Text = $"Successfully imported {copiedCount} track(s)";
 
-                mf.TimedMessageBox(2000, "Copy Tracks",
-                    $"Successfully copied {copiedCount} track(s) to current field.");
-
-                Close();
+                mf.TimedMessageBox(2000, "Import Tracks",
+                    $"Successfully imported {copiedCount} track(s) to current field.");
             }
             catch (Exception ex)
             {
                 lblStatus.Text = "Error: " + ex.Message;
-                mf.TimedMessageBox(3000, "Copy Tracks", "Error copying tracks: " + ex.Message);
+                mf.TimedMessageBox(3000, "Import Tracks", "Error importing tracks: " + ex.Message);
             }
         }
 
