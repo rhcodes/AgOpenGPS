@@ -235,8 +235,22 @@ namespace AgOpenGPS.Forms.Field
 
                 // Clear and reload tracks to ensure all indices and references are correct
                 mf.trk.gArr?.Clear();
-                mf.trk.idx = -1;
                 mf.FileLoadTracks();
+
+                // Set index to first visible track if available, otherwise -1
+                if (mf.trk.gArr.Count > 0)
+                {
+                    mf.trk.idx = 0;
+                    // Find first visible track
+                    for (int i = 0; i < mf.trk.gArr.Count; i++)
+                    {
+                        if (mf.trk.gArr[i].isVisible)
+                        {
+                            mf.trk.idx = i;
+                            break;
+                        }
+                    }
+                }
 
                 lblStatus.Text = $"Successfully imported {copiedCount} track(s)";
 
