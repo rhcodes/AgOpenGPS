@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace AgOpenGPS
 {
@@ -44,8 +46,7 @@ namespace AgOpenGPS
         public void FixFenceLine(int bndNum)
         {
             double spacing;
-            //boundary point spacing based on eq width
-            //close if less then 30 ha, 60ha, more then 60
+            //close if less then 20 ha, 40ha, more
             if (area < 200000) spacing = 1.1;
             else if (area < 400000) spacing = 2.2;
             else spacing = 3.3;
@@ -94,7 +95,7 @@ namespace AgOpenGPS
             }
 
             //make sure distance isn't too small between points on headland
-            spacing *= 1.2;
+            spacing *= 0.9;
             bndCount = fenceLine.Count;
             for (int i = 0; i < bndCount - 1; i++)
             {
@@ -121,7 +122,7 @@ namespace AgOpenGPS
                     continue;
                 }
                 delta += (fenceLine[i - 1].heading - fenceLine[i].heading);
-                if (Math.Abs(delta) > 0.01)
+                if (Math.Abs(delta) > 0.005)
                 {
                     fenceLineEar.Add(new vec2(fenceLine[i].easting, fenceLine[i].northing));
                     delta = 0;
@@ -148,6 +149,8 @@ namespace AgOpenGPS
         //obvious
         public bool CalculateFenceArea(int idx)
         {
+            Debug.WriteLine("CalculateFenceArea is Called");
+            RemoveSelfIntersections();
             int ptCount = fenceLine.Count;
             if (ptCount < 1) return false;
 
@@ -170,6 +173,129 @@ namespace AgOpenGPS
             }
 
             return isClockwise;
+        }
+        public bool RemoveSelfIntersections()
+        {
+            var original = new List<vec3>(fenceLine);
+            int originalCount = fenceLine.Count;
+            if (originalCount < 4) return false;
+
+            // Work on a closed copy (last point == first point) to simplify segment math.
+            var working = new List<vec3>(originalCount + 1);
+            working.AddRange(fenceLine);
+            working.Add(fenceLine[0]);
+
+            bool removedAny = false;
+            bool changed = true;
+            int guard = 0;
+            const int maxIterations = 128;
+
+            while (changed && guard++ < maxIterations)
+            {
+                changed = false;
+
+                for (int i = 0; i < working.Count - 1 && !changed; i++)
+                {
+                    vec2 a0 = working[i].ToVec2();
+                    vec2 a1 = working[i + 1].ToVec2();
+
+                    for (int j = i + 2; j < working.Count - 1; j++)
+                    {
+                        // Skip the segment that shares a vertex with the current one.
+                        if (j == i + 1) continue;
+                        if (i == 0 && j + 1 == working.Count - 1) continue;
+
+                        vec2 b0 = working[j].ToVec2();
+                        vec2 b1 = working[j + 1].ToVec2();
+
+                        if (!TrySegmentIntersection(a0, a1, b0, b1, out vec2 intersection)) continue;
+
+                        // Remove the loop between the two segments and insert the intersection point once.
+                        working.RemoveRange(i + 1, j - i);
+                        working.Insert(i + 1, new vec3(intersection.easting, intersection.northing, 0));
+                        working[working.Count - 1] = new vec3(working[0]);
+
+                        removedAny = true;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!removedAny) return false;
+
+            fenceLine.Clear();
+
+            for (int i = 0; i < working.Count - 1; i++)
+            {
+                vec3 candidate = working[i];
+
+                if (fenceLine.Count > 0)
+                {
+                    vec3 previous = fenceLine[fenceLine.Count - 1];
+                    if (Math.Abs(previous.easting - candidate.easting) < 0.001 &&
+                        Math.Abs(previous.northing - candidate.northing) < 0.001)
+                    {
+                        continue;
+                    }
+                }
+
+                fenceLine.Add(candidate);
+            }
+
+            if (fenceLine.Count > 1)
+            {
+                vec3 first = fenceLine[0];
+                vec3 last = fenceLine[fenceLine.Count - 1];
+                if (Math.Abs(first.easting - last.easting) < 0.001 &&
+                    Math.Abs(first.northing - last.northing) < 0.001)
+                {
+                    fenceLine.RemoveAt(fenceLine.Count - 1);
+                }
+            }
+
+            if (fenceLine.Count < 3)
+            {
+                fenceLine.Clear();
+                fenceLine.AddRange(original);
+                return false;
+            }
+
+            CalculateFenceLineHeadings();
+
+            return true;
+        }
+
+        private static bool TrySegmentIntersection(vec2 a0, vec2 a1, vec2 b0, vec2 b1, out vec2 intersection)
+        {
+            intersection = default;
+
+            double denominator = (a0.easting - a1.easting) * (b0.northing - b1.northing)
+                - (a0.northing - a1.northing) * (b0.easting - b1.easting);
+
+            if (Math.Abs(denominator) < 1e-6)
+            {
+                return false;
+            }
+
+            double t = ((a0.easting - b0.easting) * (b0.northing - b1.northing)
+                - (a0.northing - b0.northing) * (b0.easting - b1.easting)) / denominator;
+
+            double u = ((a0.easting - b0.easting) * (a0.northing - a1.northing)
+                - (a0.northing - b0.northing) * (a0.easting - a1.easting)) / denominator;
+
+            const double epsilon = 1e-6;
+
+            if (t <= epsilon || t >= 1 - epsilon || u <= epsilon || u >= 1 - epsilon)
+            {
+                return false;
+            }
+
+            intersection = new vec2(
+                a0.easting + t * (a1.easting - a0.easting),
+                a0.northing + t * (a1.northing - a0.northing));
+
+            return true;
         }
     }
 }

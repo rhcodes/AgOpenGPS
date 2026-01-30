@@ -1,4 +1,7 @@
-﻿using System;
+﻿using AgOpenGPS.Controls;
+using AgOpenGPS.Core.Translations;
+using System;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -26,14 +29,13 @@ namespace AgOpenGPS
 
         private void tabAMachine_Enter(object sender, EventArgs e)
         {
+            pboxSendMachine.Visible = false;
 
             int sett = Properties.Settings.Default.setArdMac_setting0;
 
-            if ((sett & 1) == 0) cboxMachInvertRelays.Checked = false;
-            else cboxMachInvertRelays.Checked = true;
+            cboxMachInvertRelays.Checked = ((sett & 1) == 1);
 
-            if ((sett & 2) == 0) cboxIsHydOn.Checked = false;
-            else cboxIsHydOn.Checked = true;
+            cboxIsHydOn.Checked = ((sett & 2) == 2);
 
             if (cboxIsHydOn.Checked)
             {
@@ -69,7 +71,7 @@ namespace AgOpenGPS
 
         private void nudHydLiftSecs_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 pboxSendMachine.Visible = true;
             }
@@ -77,7 +79,7 @@ namespace AgOpenGPS
 
         private void nudRaiseTime_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 pboxSendMachine.Visible = true;
             }
@@ -85,7 +87,7 @@ namespace AgOpenGPS
 
         private void nudLowerTime_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 pboxSendMachine.Visible = true;
             }
@@ -93,7 +95,7 @@ namespace AgOpenGPS
 
         private void nudUser1_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 pboxSendMachine.Visible = true;
             }
@@ -101,7 +103,7 @@ namespace AgOpenGPS
 
         private void nudUser2_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 pboxSendMachine.Visible = true;
             }
@@ -109,7 +111,7 @@ namespace AgOpenGPS
 
         private void nudUser3_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 pboxSendMachine.Visible = true;
             }
@@ -117,12 +119,12 @@ namespace AgOpenGPS
 
         private void nudUser4_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 pboxSendMachine.Visible = true;
             }
         }
-        private void cboxIsHydOn_CheckStateChanged(object sender, EventArgs e)
+        private void cboxIsHydOn_Click(object sender, EventArgs e)
         {
             if (cboxIsHydOn.Checked)
             {
@@ -138,7 +140,7 @@ namespace AgOpenGPS
                 nudLowerTime.Enabled = false;
                 nudRaiseTime.Enabled = false;
             }
-            //pboxSendMachine.Visible = true;
+            pboxSendMachine.Visible = true;
         }
 
         private void SaveSettingsMachine()
@@ -171,7 +173,7 @@ namespace AgOpenGPS
             mf.p_238.pgn[mf.p_238.set0] = (byte)sett;
             mf.p_238.pgn[mf.p_238.raiseTime] = (byte)nudRaiseTime.Value;
             mf.p_238.pgn[mf.p_238.lowerTime] = (byte)nudLowerTime.Value;
-            
+
             mf.p_238.pgn[mf.p_238.user1] = (byte)nudUser1.Value;
             mf.p_238.pgn[mf.p_238.user2] = (byte)nudUser2.Value;
             mf.p_238.pgn[mf.p_238.user3] = (byte)nudUser3.Value;
@@ -187,7 +189,7 @@ namespace AgOpenGPS
 
             Properties.Settings.Default.Save();
 
-            mf.TimedMessageBox(1000, gStr.gsMachinePort, gStr.gsSentToMachineModule);
+            mf.TimedMessageBox(2000, gStr.gsMachinePort, gStr.gsSentToMachineModule);
 
             pboxSendMachine.Visible = false;
         }
@@ -218,7 +220,7 @@ namespace AgOpenGPS
             cboxPin7.Items.Clear(); cboxPin7.Items.AddRange(wordsList);
             cboxPin8.Items.Clear(); cboxPin8.Items.AddRange(wordsList);
             cboxPin9.Items.Clear(); cboxPin9.Items.AddRange(wordsList);
-            
+
             cboxPin10.Items.Clear(); cboxPin10.Items.AddRange(wordsList);
             cboxPin11.Items.Clear(); cboxPin11.Items.AddRange(wordsList);
             cboxPin12.Items.Clear(); cboxPin12.Items.AddRange(wordsList);
@@ -271,9 +273,9 @@ namespace AgOpenGPS
         private void btnSendRelayConfigPGN_Click(object sender, EventArgs e)
         {
             SaveSettingsRelay();
-            SendRelaySettingsToMachineModule();
+            mf.SendRelaySettingsToMachineModule();
 
-            mf.TimedMessageBox(1000, gStr.gsMachinePort, gStr.gsSentToMachineModule);
+            mf.TimedMessageBox(2000, gStr.gsMachinePort, gStr.gsSentToMachineModule);
 
             pboxSendRelay.Visible = false;
         }
@@ -313,78 +315,6 @@ namespace AgOpenGPS
             Properties.Settings.Default.Save();
             pboxSendRelay.Visible = false;
 
-        }
-
-        private void SendRelaySettingsToMachineModule()
-        {
-            words = Properties.Settings.Default.setRelay_pinConfig.Split(',');
-
-            //load the pgn
-            mf.p_236.pgn[mf.p_236.pin0] = (byte)int.Parse(words[0]);
-            mf.p_236.pgn[mf.p_236.pin1] = (byte)int.Parse(words[1]);
-            mf.p_236.pgn[mf.p_236.pin2] = (byte)int.Parse(words[2]);
-            mf.p_236.pgn[mf.p_236.pin3] = (byte)int.Parse(words[3]);
-            mf.p_236.pgn[mf.p_236.pin4] = (byte)int.Parse(words[4]);
-            mf.p_236.pgn[mf.p_236.pin5] = (byte)int.Parse(words[5]);
-            mf.p_236.pgn[mf.p_236.pin6] = (byte)int.Parse(words[6]);
-            mf.p_236.pgn[mf.p_236.pin7] = (byte)int.Parse(words[7]);
-            mf.p_236.pgn[mf.p_236.pin8] = (byte)int.Parse(words[8]);
-            mf.p_236.pgn[mf.p_236.pin9] = (byte)int.Parse(words[9]);
-
-            mf.p_236.pgn[mf.p_236.pin10] = (byte)int.Parse(words[10]);
-            mf.p_236.pgn[mf.p_236.pin11] = (byte)int.Parse(words[11]);
-            mf.p_236.pgn[mf.p_236.pin12] = (byte)int.Parse(words[12]);
-            mf.p_236.pgn[mf.p_236.pin13] = (byte)int.Parse(words[13]);
-            mf.p_236.pgn[mf.p_236.pin14] = (byte)int.Parse(words[14]);
-            mf.p_236.pgn[mf.p_236.pin15] = (byte)int.Parse(words[15]);
-            mf.p_236.pgn[mf.p_236.pin16] = (byte)int.Parse(words[16]);
-            mf.p_236.pgn[mf.p_236.pin17] = (byte)int.Parse(words[17]);
-            mf.p_236.pgn[mf.p_236.pin18] = (byte)int.Parse(words[18]);
-            mf.p_236.pgn[mf.p_236.pin19] = (byte)int.Parse(words[19]);
-
-            mf.p_236.pgn[mf.p_236.pin20] = (byte)int.Parse(words[20]);
-            mf.p_236.pgn[mf.p_236.pin21] = (byte)int.Parse(words[21]);
-            mf.p_236.pgn[mf.p_236.pin22] = (byte)int.Parse(words[22]);
-            mf.p_236.pgn[mf.p_236.pin23] = (byte)int.Parse(words[23]);
-            mf.SendPgnToLoop(mf.p_236.pgn);
-
-
-            mf.p_235.pgn[mf.p_235.sec0Lo] = unchecked((byte)(mf.section[0].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec0Hi] = unchecked((byte)((int)((mf.section[0].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec1Lo] = unchecked((byte)(mf.section[1].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec1Hi] = unchecked((byte)((int)((mf.section[1].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec2Lo] = unchecked((byte)(mf.section[2].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec2Hi] = unchecked((byte)((int)((mf.section[2].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec3Lo] = unchecked((byte)(mf.section[3].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec3Hi] = unchecked((byte)((int)((mf.section[3].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec4Lo] = unchecked((byte)(mf.section[4].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec4Hi] = unchecked((byte)((int)((mf.section[4].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec5Lo] = unchecked((byte)(mf.section[5].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec5Hi] = unchecked((byte)((int)((mf.section[5].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec6Lo] = unchecked((byte)(mf.section[6].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec6Hi] = unchecked((byte)((int)((mf.section[6].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec7Lo] = unchecked((byte)(mf.section[7].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec7Hi] = unchecked((byte)((int)((mf.section[7].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec8Lo] = unchecked((byte)(mf.section[8].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec8Hi] = unchecked((byte)((int)((mf.section[8].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec9Lo] = unchecked((byte)(mf.section[9].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec9Hi] = unchecked((byte)((int)((mf.section[9].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec10Lo] = unchecked((byte)(mf.section[10].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec10Hi] = unchecked((byte)((int)((mf.section[10].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec11Lo] = unchecked((byte)(mf.section[11].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec11Hi] = unchecked((byte)((int)((mf.section[11].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec12Lo] = unchecked((byte)(mf.section[12].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec12Hi] = unchecked((byte)((int)((mf.section[12].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec13Lo] = unchecked((byte)(mf.section[13].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec13Hi] = unchecked((byte)((int)((mf.section[13].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec14Lo] = unchecked((byte)(mf.section[14].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec14Hi] = unchecked((byte)((int)((mf.section[14].sectionWidth * 100)) >> 8));
-            mf.p_235.pgn[mf.p_235.sec15Lo] = unchecked((byte)(mf.section[15].sectionWidth * 100));
-            mf.p_235.pgn[mf.p_235.sec15Hi] = unchecked((byte)((int)((mf.section[15].sectionWidth * 100)) >> 8));
-
-            mf.p_235.pgn[mf.p_235.numSections] = (byte)mf.tool.numOfSections;
-
-            mf.SendPgnToLoop(mf.p_235.pgn);
         }
 
         private void btnRelaySetDefaultConfig_Click(object sender, EventArgs e)
@@ -491,6 +421,7 @@ namespace AgOpenGPS
         #endregion
 
         #region Uturn controls
+
         private void UpdateUturnText()
         {
             if (mf.isMetric)
@@ -505,7 +436,7 @@ namespace AgOpenGPS
 
         private void nudYouTurnRadius_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 mf.yt.youTurnRadius = (double)nudYouTurnRadius.Value * mf.ftOrMtoM;
             }
@@ -513,23 +444,10 @@ namespace AgOpenGPS
 
         private void nudTurnDistanceFromBoundary_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 mf.yt.uturnDistanceFromBoundary = (double)nudTurnDistanceFromBoundary.Value * mf.ftOrMtoM;
             }
-        }
-
-        private void btnTriggerDistanceDn_Click(object sender, EventArgs e)
-        {
-            mf.yt.uturnDistanceFromBoundary--;
-            if (mf.yt.uturnDistanceFromBoundary < 0.1) mf.yt.uturnDistanceFromBoundary = 0.1;
-            UpdateUturnText();
-        }
-
-        private void btnTriggerDistanceUp_Click(object sender, EventArgs e)
-        {
-            if (mf.yt.uturnDistanceFromBoundary++ > 50) mf.yt.uturnDistanceFromBoundary = 50;
-            UpdateUturnText();
         }
 
         private void btnDistanceDn_Click(object sender, EventArgs e)
@@ -565,25 +483,25 @@ namespace AgOpenGPS
             lblTramWidthUnits.Text = mf.unitsInCm;
 
             nudTramWidth.Value = (int)(Math.Abs(Properties.Settings.Default.setTram_tramWidth) * mf.m2InchOrCm);
-
-            cboxTramOnBackBuffer.Checked = Properties.Settings.Default.setTram_isTramOnBackBuffer;
+            chkBoxOverrideTramControlPos.Checked = Properties.Settings.Default.setTool_isTramOuterInverted;
+            cboxDisplayTramControl.Checked = Properties.Settings.Default.setTool_isDisplayTramControl;
         }
 
         private void tabTram_Leave(object sender, EventArgs e)
         {
+            Properties.Settings.Default.setTool_isTramOuterInverted = chkBoxOverrideTramControlPos.Checked;
 
-            if (cboxTramOnBackBuffer.Checked) Properties.Settings.Default.setTram_isTramOnBackBuffer = true;
-            else Properties.Settings.Default.setTram_isTramOnBackBuffer = false;
-            mf.isTramOnBackBuffer = Properties.Settings.Default.setTram_isTramOnBackBuffer;
+            Properties.Settings.Default.setTool_isDisplayTramControl = cboxDisplayTramControl.Checked;
+            mf.tool.isDisplayTramControl = cboxDisplayTramControl.Checked;
 
-            mf.tram.isOuter = ((int)(mf.tram.tramWidth / mf.tool.width + 0.5)) % 2 == 0 ? true : false;
+            mf.tram.IsTramOuterOrInner();
 
             Properties.Settings.Default.Save();
-            
+
         }
         private void nudTramWidth_Click(object sender, EventArgs e)
         {
-            if (mf.KeypadToNUD((NumericUpDown)sender, this))
+            if (((NudlessNumericUpDown)sender).ShowKeypad(this))
             {
                 mf.tram.tramWidth = (double)nudTramWidth.Value * mf.inchOrCm2m;
                 Properties.Settings.Default.setTram_tramWidth = mf.tram.tramWidth;

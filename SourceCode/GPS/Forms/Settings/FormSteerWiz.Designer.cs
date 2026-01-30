@@ -78,7 +78,6 @@
             this.hsbarLookAheadMult = new System.Windows.Forms.HScrollBar();
             this.lblLookAhead = new System.Windows.Forms.Label();
             this.lblLookAheadMult = new System.Windows.Forms.Label();
-            this.hsbarLookAhead = new System.Windows.Forms.HScrollBar();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.label15 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -112,7 +111,7 @@
             this.label63 = new System.Windows.Forms.Label();
             this.label64 = new System.Windows.Forms.Label();
             this.label61 = new System.Windows.Forms.Label();
-            this.nudMaxCounts = new System.Windows.Forms.NumericUpDown();
+            this.nudMaxCounts = new AgOpenGPS.NudlessNumericUpDown();
             this.label55 = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -122,14 +121,11 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.label38 = new System.Windows.Forms.Label();
             this.btnFreeDriveZero = new System.Windows.Forms.Button();
-            this.btnSteerAngleUp = new ProXoft.WinForms.RepeatButton();
+            this.btnSteerAngleUp = new AgLibrary.Controls.RepeatButton();
             this.btnFreeDrive = new System.Windows.Forms.Button();
-            this.btnSteerAngleDown = new ProXoft.WinForms.RepeatButton();
+            this.btnSteerAngleDown = new AgLibrary.Controls.RepeatButton();
             this.hsbarSensor = new System.Windows.Forms.HScrollBar();
             this.lblhsbarSensor = new System.Windows.Forms.Label();
-            this.label16 = new System.Windows.Forms.Label();
-            this.nudPanicStopSpeed = new System.Windows.Forms.NumericUpDown();
-            this.label31 = new System.Windows.Forms.Label();
             this.tabWiz = new System.Windows.Forms.TabControl();
             this.tabStart = new System.Windows.Forms.TabPage();
             this.btnStartWizard = new System.Windows.Forms.Button();
@@ -139,24 +135,26 @@
             this.btnOkNext_LoadDefault = new System.Windows.Forms.Button();
             this.btnLoadDefaults = new System.Windows.Forms.Button();
             this.tabWheelBase = new System.Windows.Forms.TabPage();
+            this.label117 = new System.Windows.Forms.Label();
             this.label89 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
             this.label90 = new System.Windows.Forms.Label();
-            this.nudWheelbase = new System.Windows.Forms.NumericUpDown();
+            this.nudWheelbase = new AgOpenGPS.NudlessNumericUpDown();
             this.label91 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.tabWheelTrack = new System.Windows.Forms.TabPage();
+            this.label118 = new System.Windows.Forms.Label();
+            this.nudVehicleTrack = new AgOpenGPS.NudlessNumericUpDown();
+            this.label95 = new System.Windows.Forms.Label();
             this.label96 = new System.Windows.Forms.Label();
             this.button7 = new System.Windows.Forms.Button();
             this.label94 = new System.Windows.Forms.Label();
-            this.nudVehicleTrack = new System.Windows.Forms.NumericUpDown();
-            this.label95 = new System.Windows.Forms.Label();
             this.button8 = new System.Windows.Forms.Button();
             this.tabAntennaDistance = new System.Windows.Forms.TabPage();
             this.label100 = new System.Windows.Forms.Label();
             this.button9 = new System.Windows.Forms.Button();
             this.label98 = new System.Windows.Forms.Label();
-            this.nudAntennaPivot = new System.Windows.Forms.NumericUpDown();
+            this.nudAntennaPivot = new AgOpenGPS.NudlessNumericUpDown();
             this.button10 = new System.Windows.Forms.Button();
             this.label99 = new System.Windows.Forms.Label();
             this.tabAntennaHeight = new System.Windows.Forms.TabPage();
@@ -164,13 +162,13 @@
             this.label97 = new System.Windows.Forms.Label();
             this.button13 = new System.Windows.Forms.Button();
             this.label92 = new System.Windows.Forms.Label();
-            this.nudAntennaHeight = new System.Windows.Forms.NumericUpDown();
+            this.nudAntennaHeight = new AgOpenGPS.NudlessNumericUpDown();
             this.label93 = new System.Windows.Forms.Label();
             this.button14 = new System.Windows.Forms.Button();
             this.tabAntennaOffset = new System.Windows.Forms.TabPage();
             this.button11 = new System.Windows.Forms.Button();
             this.label102 = new System.Windows.Forms.Label();
-            this.nudAntennaOffset = new System.Windows.Forms.NumericUpDown();
+            this.nudAntennaOffset = new AgOpenGPS.NudlessNumericUpDown();
             this.label104 = new System.Windows.Forms.Label();
             this.button12 = new System.Windows.Forms.Button();
             this.label103 = new System.Windows.Forms.Label();
@@ -292,7 +290,6 @@
             this.cboxEncoder = new System.Windows.Forms.CheckBox();
             this.cboxCurrentSensor = new System.Windows.Forms.CheckBox();
             this.tabPanicStop = new System.Windows.Forms.TabPage();
-            this.label82 = new System.Windows.Forms.Label();
             this.btnPrev_Panic = new System.Windows.Forms.Button();
             this.label54 = new System.Windows.Forms.Label();
             this.btnOkNext_PanicStop = new System.Windows.Forms.Button();
@@ -345,7 +342,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.nudMaxCounts)).BeginInit();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudPanicStopSpeed)).BeginInit();
             this.tabWiz.SuspendLayout();
             this.tabStart.SuspendLayout();
             this.tabLoadDef.SuspendLayout();
@@ -812,7 +808,6 @@
             this.tabInt.Controls.Add(this.hsbarLookAheadMult);
             this.tabInt.Controls.Add(this.lblLookAhead);
             this.tabInt.Controls.Add(this.lblLookAheadMult);
-            this.tabInt.Controls.Add(this.hsbarLookAhead);
             this.tabInt.ForeColor = System.Drawing.Color.Black;
             this.tabInt.ImageIndex = 3;
             this.tabInt.Location = new System.Drawing.Point(4, 52);
@@ -974,18 +969,6 @@
             this.lblLookAheadMult.TabIndex = 299;
             this.lblLookAheadMult.Text = "888";
             this.lblLookAheadMult.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // hsbarLookAhead
-            // 
-            this.hsbarLookAhead.LargeChange = 1;
-            this.hsbarLookAhead.Location = new System.Drawing.Point(68, 64);
-            this.hsbarLookAhead.Maximum = 50;
-            this.hsbarLookAhead.Minimum = 10;
-            this.hsbarLookAhead.Name = "hsbarLookAhead";
-            this.hsbarLookAhead.Size = new System.Drawing.Size(217, 30);
-            this.hsbarLookAhead.TabIndex = 289;
-            this.hsbarLookAhead.Value = 25;
-            this.hsbarLookAhead.ValueChanged += new System.EventHandler(this.hsbarLookAhead_ValueChanged);
             // 
             // imageList1
             // 
@@ -1546,7 +1529,7 @@
             this.btnFreeDriveZero.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnFreeDriveZero.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnFreeDriveZero.ForeColor = System.Drawing.Color.White;
-            this.btnFreeDriveZero.Image = global::AgOpenGPS.Properties.Resources.SteerZeroSmall;
+            this.btnFreeDriveZero.Image = global::AgOpenGPS.Properties.Resources.SteerZero;
             this.btnFreeDriveZero.Location = new System.Drawing.Point(340, 13);
             this.btnFreeDriveZero.Name = "btnFreeDriveZero";
             this.btnFreeDriveZero.Size = new System.Drawing.Size(73, 56);
@@ -1624,59 +1607,6 @@
             this.lblhsbarSensor.TabIndex = 518;
             this.lblhsbarSensor.Text = "0%";
             this.lblhsbarSensor.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label16
-            // 
-            this.label16.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label16.BackColor = System.Drawing.Color.Transparent;
-            this.label16.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label16.ForeColor = System.Drawing.Color.Black;
-            this.label16.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label16.Location = new System.Drawing.Point(44, 164);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(547, 29);
-            this.label16.TabIndex = 520;
-            this.label16.Text = "Set Panic Stop Speed";
-            this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // nudPanicStopSpeed
-            // 
-            this.nudPanicStopSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.nudPanicStopSpeed.BackColor = System.Drawing.Color.AliceBlue;
-            this.nudPanicStopSpeed.Font = new System.Drawing.Font("Tahoma", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.nudPanicStopSpeed.InterceptArrowKeys = false;
-            this.nudPanicStopSpeed.Location = new System.Drawing.Point(263, 202);
-            this.nudPanicStopSpeed.Maximum = new decimal(new int[] {
-            99,
-            0,
-            0,
-            0});
-            this.nudPanicStopSpeed.Name = "nudPanicStopSpeed";
-            this.nudPanicStopSpeed.ReadOnly = true;
-            this.nudPanicStopSpeed.Size = new System.Drawing.Size(107, 52);
-            this.nudPanicStopSpeed.TabIndex = 519;
-            this.nudPanicStopSpeed.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.nudPanicStopSpeed.Value = new decimal(new int[] {
-            15,
-            0,
-            0,
-            0});
-            this.nudPanicStopSpeed.Click += new System.EventHandler(this.nudPanicStopSpeed_Click);
-            // 
-            // label31
-            // 
-            this.label31.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label31.AutoSize = true;
-            this.label31.BackColor = System.Drawing.Color.Transparent;
-            this.label31.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label31.ForeColor = System.Drawing.Color.Black;
-            this.label31.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label31.Location = new System.Drawing.Point(284, 261);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(62, 19);
-            this.label31.TabIndex = 521;
-            this.label31.Text = "0 = Off";
-            this.label31.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             // 
             // tabWiz
             // 
@@ -1826,6 +1756,7 @@
             this.tabWheelBase.BackColor = System.Drawing.Color.White;
             this.tabWheelBase.BackgroundImage = global::AgOpenGPS.Properties.Resources.RadiusWheelBase;
             this.tabWheelBase.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.tabWheelBase.Controls.Add(this.label117);
             this.tabWheelBase.Controls.Add(this.label89);
             this.tabWheelBase.Controls.Add(this.button1);
             this.tabWheelBase.Controls.Add(this.label90);
@@ -1838,15 +1769,27 @@
             this.tabWheelBase.TabIndex = 37;
             this.tabWheelBase.Text = "WBase";
             // 
+            // label117
+            // 
+            this.label117.BackColor = System.Drawing.Color.White;
+            this.label117.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label117.ForeColor = System.Drawing.Color.Black;
+            this.label117.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.label117.Location = new System.Drawing.Point(3, 8);
+            this.label117.Name = "label117";
+            this.label117.Size = new System.Drawing.Size(455, 154);
+            this.label117.TabIndex = 544;
+            this.label117.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
             // label89
             // 
             this.label89.BackColor = System.Drawing.Color.White;
             this.label89.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label89.ForeColor = System.Drawing.Color.Black;
             this.label89.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label89.Location = new System.Drawing.Point(326, 5);
+            this.label89.Location = new System.Drawing.Point(385, 5);
             this.label89.Name = "label89";
-            this.label89.Size = new System.Drawing.Size(283, 257);
+            this.label89.Size = new System.Drawing.Size(224, 257);
             this.label89.TabIndex = 543;
             this.label89.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
@@ -1886,7 +1829,7 @@
             this.nudWheelbase.BackColor = System.Drawing.Color.AliceBlue;
             this.nudWheelbase.Font = new System.Drawing.Font("Tahoma", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.nudWheelbase.InterceptArrowKeys = false;
-            this.nudWheelbase.Location = new System.Drawing.Point(23, 224);
+            this.nudWheelbase.Location = new System.Drawing.Point(90, 231);
             this.nudWheelbase.Maximum = new decimal(new int[] {
             999,
             0,
@@ -1912,7 +1855,7 @@
             this.label91.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label91.ForeColor = System.Drawing.Color.Black;
             this.label91.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label91.Location = new System.Drawing.Point(8, 153);
+            this.label91.Location = new System.Drawing.Point(67, 153);
             this.label91.Name = "label91";
             this.label91.Size = new System.Drawing.Size(180, 187);
             this.label91.TabIndex = 538;
@@ -1941,11 +1884,12 @@
             this.tabWheelTrack.BackColor = System.Drawing.Color.White;
             this.tabWheelTrack.BackgroundImage = global::AgOpenGPS.Properties.Resources.RadiusWheelBase;
             this.tabWheelTrack.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.tabWheelTrack.Controls.Add(this.label118);
+            this.tabWheelTrack.Controls.Add(this.nudVehicleTrack);
+            this.tabWheelTrack.Controls.Add(this.label95);
             this.tabWheelTrack.Controls.Add(this.label96);
             this.tabWheelTrack.Controls.Add(this.button7);
             this.tabWheelTrack.Controls.Add(this.label94);
-            this.tabWheelTrack.Controls.Add(this.nudVehicleTrack);
-            this.tabWheelTrack.Controls.Add(this.label95);
             this.tabWheelTrack.Controls.Add(this.button8);
             this.tabWheelTrack.Location = new System.Drawing.Point(4, 19);
             this.tabWheelTrack.Name = "tabWheelTrack";
@@ -1953,15 +1897,65 @@
             this.tabWheelTrack.TabIndex = 38;
             this.tabWheelTrack.Text = "Track";
             // 
+            // label118
+            // 
+            this.label118.BackColor = System.Drawing.Color.White;
+            this.label118.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label118.ForeColor = System.Drawing.Color.Black;
+            this.label118.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.label118.Location = new System.Drawing.Point(2, 6);
+            this.label118.Name = "label118";
+            this.label118.Size = new System.Drawing.Size(294, 335);
+            this.label118.TabIndex = 545;
+            this.label118.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // nudVehicleTrack
+            // 
+            this.nudVehicleTrack.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.nudVehicleTrack.BackColor = System.Drawing.Color.AliceBlue;
+            this.nudVehicleTrack.Font = new System.Drawing.Font("Tahoma", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.nudVehicleTrack.InterceptArrowKeys = false;
+            this.nudVehicleTrack.Location = new System.Drawing.Point(423, 185);
+            this.nudVehicleTrack.Maximum = new decimal(new int[] {
+            999,
+            0,
+            0,
+            0});
+            this.nudVehicleTrack.Name = "nudVehicleTrack";
+            this.nudVehicleTrack.ReadOnly = true;
+            this.nudVehicleTrack.Size = new System.Drawing.Size(157, 65);
+            this.nudVehicleTrack.TabIndex = 537;
+            this.nudVehicleTrack.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.nudVehicleTrack.Value = new decimal(new int[] {
+            333,
+            0,
+            0,
+            0});
+            this.nudVehicleTrack.Click += new System.EventHandler(this.nudVehicleTrack_Click);
+            // 
+            // label95
+            // 
+            this.label95.BackColor = System.Drawing.Color.Linen;
+            this.label95.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.label95.Font = new System.Drawing.Font("Tahoma", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label95.ForeColor = System.Drawing.Color.Black;
+            this.label95.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.label95.Location = new System.Drawing.Point(380, 144);
+            this.label95.Name = "label95";
+            this.label95.Size = new System.Drawing.Size(255, 131);
+            this.label95.TabIndex = 538;
+            this.label95.Text = "Set Track Width";
+            this.label95.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
             // label96
             // 
             this.label96.BackColor = System.Drawing.Color.White;
             this.label96.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label96.ForeColor = System.Drawing.Color.Black;
             this.label96.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label96.Location = new System.Drawing.Point(20, 79);
+            this.label96.Location = new System.Drawing.Point(300, 20);
             this.label96.Name = "label96";
-            this.label96.Size = new System.Drawing.Size(187, 262);
+            this.label96.Size = new System.Drawing.Size(57, 80);
             this.label96.TabIndex = 544;
             this.label96.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
@@ -1994,44 +1988,6 @@
             this.label94.TabIndex = 541;
             this.label94.Text = "Wheel Track";
             this.label94.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // nudVehicleTrack
-            // 
-            this.nudVehicleTrack.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.nudVehicleTrack.BackColor = System.Drawing.Color.AliceBlue;
-            this.nudVehicleTrack.Font = new System.Drawing.Font("Tahoma", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.nudVehicleTrack.InterceptArrowKeys = false;
-            this.nudVehicleTrack.Location = new System.Drawing.Point(389, 158);
-            this.nudVehicleTrack.Maximum = new decimal(new int[] {
-            999,
-            0,
-            0,
-            0});
-            this.nudVehicleTrack.Name = "nudVehicleTrack";
-            this.nudVehicleTrack.ReadOnly = true;
-            this.nudVehicleTrack.Size = new System.Drawing.Size(157, 65);
-            this.nudVehicleTrack.TabIndex = 537;
-            this.nudVehicleTrack.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.nudVehicleTrack.Value = new decimal(new int[] {
-            333,
-            0,
-            0,
-            0});
-            this.nudVehicleTrack.Click += new System.EventHandler(this.nudVehicleTrack_Click);
-            // 
-            // label95
-            // 
-            this.label95.BackColor = System.Drawing.Color.Linen;
-            this.label95.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label95.Font = new System.Drawing.Font("Tahoma", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label95.ForeColor = System.Drawing.Color.Black;
-            this.label95.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label95.Location = new System.Drawing.Point(338, 93);
-            this.label95.Name = "label95";
-            this.label95.Size = new System.Drawing.Size(269, 176);
-            this.label95.TabIndex = 538;
-            this.label95.Text = "Set Track Width";
-            this.label95.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // button8
             // 
@@ -2378,12 +2334,12 @@
             this.label104.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label104.AutoSize = true;
             this.label104.BackColor = System.Drawing.Color.Transparent;
-            this.label104.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label104.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label104.ForeColor = System.Drawing.Color.Black;
             this.label104.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label104.Location = new System.Drawing.Point(285, 237);
+            this.label104.Location = new System.Drawing.Point(471, 247);
             this.label104.Name = "label104";
-            this.label104.Size = new System.Drawing.Size(62, 19);
+            this.label104.Size = new System.Drawing.Size(86, 25);
             this.label104.TabIndex = 539;
             this.label104.Text = "0 = Off";
             this.label104.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -3319,7 +3275,7 @@
             this.btnZeroWAS.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnZeroWAS.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnZeroWAS.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.btnZeroWAS.Image = global::AgOpenGPS.Properties.Resources.SteerZeroSmall;
+            this.btnZeroWAS.Image = global::AgOpenGPS.Properties.Resources.SteerZero;
             this.btnZeroWAS.Location = new System.Drawing.Point(273, 97);
             this.btnZeroWAS.Name = "btnZeroWAS";
             this.btnZeroWAS.Size = new System.Drawing.Size(100, 77);
@@ -4216,32 +4172,14 @@
             // tabPanicStop
             // 
             this.tabPanicStop.BackColor = System.Drawing.Color.White;
-            this.tabPanicStop.Controls.Add(this.label82);
             this.tabPanicStop.Controls.Add(this.btnPrev_Panic);
             this.tabPanicStop.Controls.Add(this.label54);
-            this.tabPanicStop.Controls.Add(this.nudPanicStopSpeed);
-            this.tabPanicStop.Controls.Add(this.label16);
-            this.tabPanicStop.Controls.Add(this.label31);
             this.tabPanicStop.Controls.Add(this.btnOkNext_PanicStop);
             this.tabPanicStop.Location = new System.Drawing.Point(4, 19);
             this.tabPanicStop.Name = "tabPanicStop";
             this.tabPanicStop.Size = new System.Drawing.Size(655, 348);
             this.tabPanicStop.TabIndex = 30;
             this.tabPanicStop.Text = "PanicStop";
-            // 
-            // label82
-            // 
-            this.label82.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label82.BackColor = System.Drawing.Color.Transparent;
-            this.label82.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label82.ForeColor = System.Drawing.Color.Black;
-            this.label82.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label82.Location = new System.Drawing.Point(44, 108);
-            this.label82.Name = "label82";
-            this.label82.Size = new System.Drawing.Size(547, 29);
-            this.label82.TabIndex = 536;
-            this.label82.Text = "Kmh drop per fix update (3 works well)";
-            this.label82.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // btnPrev_Panic
             // 
@@ -4380,7 +4318,7 @@
             this.btnZeroMinMovementSetting.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnZeroMinMovementSetting.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnZeroMinMovementSetting.ForeColor = System.Drawing.Color.White;
-            this.btnZeroMinMovementSetting.Image = global::AgOpenGPS.Properties.Resources.SteerZeroSmall;
+            this.btnZeroMinMovementSetting.Image = global::AgOpenGPS.Properties.Resources.SteerZero;
             this.btnZeroMinMovementSetting.Location = new System.Drawing.Point(496, 37);
             this.btnZeroMinMovementSetting.Name = "btnZeroMinMovementSetting";
             this.btnZeroMinMovementSetting.Size = new System.Drawing.Size(76, 68);
@@ -4571,7 +4509,7 @@
             this.btnZeroPGain.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnZeroPGain.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnZeroPGain.ForeColor = System.Drawing.Color.White;
-            this.btnZeroPGain.Image = global::AgOpenGPS.Properties.Resources.SteerZeroSmall;
+            this.btnZeroPGain.Image = global::AgOpenGPS.Properties.Resources.SteerZero;
             this.btnZeroPGain.Location = new System.Drawing.Point(520, 72);
             this.btnZeroPGain.Name = "btnZeroPGain";
             this.btnZeroPGain.Size = new System.Drawing.Size(76, 67);
@@ -4917,6 +4855,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(805, 558);
+            this.ControlBox = false;
             this.Controls.Add(this.btnCloseAll);
             this.Controls.Add(this.label67);
             this.Controls.Add(this.lblBarWasOffset);
@@ -4953,7 +4892,6 @@
             this.panel2.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudPanicStopSpeed)).EndInit();
             this.tabWiz.ResumeLayout(false);
             this.tabStart.ResumeLayout(false);
             this.tabLoadDef.ResumeLayout(false);
@@ -5027,12 +4965,10 @@
         private System.Windows.Forms.Label lblProportionalGain;
         private System.Windows.Forms.HScrollBar hsbarProportionalGain;
         private System.Windows.Forms.Label lblLookAhead;
-        private System.Windows.Forms.HScrollBar hsbarLookAhead;
         private System.Windows.Forms.Label lblMinPWM;
         private System.Windows.Forms.HScrollBar hsbarMinPWM;
         private System.Windows.Forms.Label lblMaxSteerAngle;
         private System.Windows.Forms.HScrollBar hsbarMaxSteerAngle;
-        private System.Windows.Forms.HScrollBar hsbarLookAheadMult;
         private System.Windows.Forms.Label lblLookAheadMult;
         private System.Windows.Forms.HScrollBar hsbarHeadingErrorGain;
         private System.Windows.Forms.Label lblStanleyGain;
@@ -5045,8 +4981,8 @@
         private System.Windows.Forms.Label lblSteerAngleActual;
         private System.Windows.Forms.Label lblError;
         private System.Windows.Forms.Button btnFreeDriveZero;
-        private ProXoft.WinForms.RepeatButton btnSteerAngleDown;
-        private ProXoft.WinForms.RepeatButton btnSteerAngleUp;
+        private AgLibrary.Controls.RepeatButton btnSteerAngleDown;
+        private AgLibrary.Controls.RepeatButton btnSteerAngleUp;
         private System.Windows.Forms.Label lblPWMDisplay;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label11;
@@ -5089,8 +5025,6 @@
         private System.Windows.Forms.HScrollBar hsbarIntegralPurePursuit;
         private System.Windows.Forms.Label lblIntegralPercent;
         private System.Windows.Forms.Label lblPureIntegral;
-        private System.Windows.Forms.Label lblSideHillComp;
-        private System.Windows.Forms.HScrollBar hsbarSideHillComp;
         private System.Windows.Forms.Label label22;
         private System.Windows.Forms.ProgressBar pbarSensor;
         private System.Windows.Forms.Label lblPercentFS;
@@ -5107,7 +5041,7 @@
         private System.Windows.Forms.Label label63;
         private System.Windows.Forms.Label label64;
         private System.Windows.Forms.Label label61;
-        private System.Windows.Forms.NumericUpDown nudMaxCounts;
+        private NudlessNumericUpDown nudMaxCounts;
         private System.Windows.Forms.Label label55;
         private System.Windows.Forms.CheckBox cboxCurrentSensor;
         private System.Windows.Forms.CheckBox cboxPressureSensor;
@@ -5121,9 +5055,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.HScrollBar hsbarSensor;
         private System.Windows.Forms.Label lblhsbarSensor;
-        private System.Windows.Forms.Label label16;
-        private System.Windows.Forms.NumericUpDown nudPanicStopSpeed;
-        private System.Windows.Forms.Label label31;
         private System.Windows.Forms.TabControl tabWiz;
         private System.Windows.Forms.TabPage tabStart;
         private System.Windows.Forms.TabPage tabMotorDriver;
@@ -5231,7 +5162,6 @@
         private System.Windows.Forms.Label label81;
         private System.Windows.Forms.Label label80;
         private System.Windows.Forms.Button btnOkNext_LoadDefault;
-        private System.Windows.Forms.Label label82;
         private System.Windows.Forms.TabPage tabPGain;
         private System.Windows.Forms.Label label88;
         private System.Windows.Forms.Label label83;
@@ -5247,32 +5177,32 @@
         private System.Windows.Forms.TabPage tabWheelBase;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label label90;
-        private System.Windows.Forms.NumericUpDown nudWheelbase;
+        private NudlessNumericUpDown nudWheelbase;
         private System.Windows.Forms.Label label91;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.TabPage tabWheelTrack;
         private System.Windows.Forms.Button button7;
         private System.Windows.Forms.Label label94;
-        private System.Windows.Forms.NumericUpDown nudVehicleTrack;
+        private NudlessNumericUpDown nudVehicleTrack;
         private System.Windows.Forms.Label label95;
         private System.Windows.Forms.Button button8;
         private System.Windows.Forms.TabPage tabAntennaDistance;
         private System.Windows.Forms.Button button9;
         private System.Windows.Forms.Label label98;
-        private System.Windows.Forms.NumericUpDown nudAntennaPivot;
+        private NudlessNumericUpDown nudAntennaPivot;
         private System.Windows.Forms.Label label99;
         private System.Windows.Forms.Button button10;
         private System.Windows.Forms.TabPage tabAntennaOffset;
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Label label102;
-        private System.Windows.Forms.NumericUpDown nudAntennaOffset;
+        private NudlessNumericUpDown nudAntennaOffset;
         private System.Windows.Forms.Label label103;
         private System.Windows.Forms.Label label104;
         private System.Windows.Forms.Button button12;
         private System.Windows.Forms.TabPage tabAntennaHeight;
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Label label92;
-        private System.Windows.Forms.NumericUpDown nudAntennaHeight;
+        private NudlessNumericUpDown nudAntennaHeight;
         private System.Windows.Forms.Label label93;
         private System.Windows.Forms.Button button14;
         private System.Windows.Forms.TabPage tabRollInv;
@@ -5327,5 +5257,10 @@
         private System.Windows.Forms.Label label114;
         private System.Windows.Forms.Label label115;
         private System.Windows.Forms.Label label116;
+        private System.Windows.Forms.Label label117;
+        private System.Windows.Forms.Label label118;
+        private System.Windows.Forms.Label lblSideHillComp;
+        private System.Windows.Forms.HScrollBar hsbarSideHillComp;
+        private System.Windows.Forms.HScrollBar hsbarLookAheadMult;
     }
 }

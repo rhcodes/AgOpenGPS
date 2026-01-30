@@ -1,4 +1,7 @@
-﻿using System;
+using AgOpenGPS.Controls;
+using AgOpenGPS.Core.Models;
+using AgOpenGPS.Core.Translations;
+using System;
 using System.Windows.Forms;
 
 namespace AgOpenGPS
@@ -36,27 +39,10 @@ namespace AgOpenGPS
 
             if (!mf.timerSim.Enabled)
             {
-                mf.TimedMessageBox(2000, "Simulator is off", "Go Back To Work, No Time For Games");
+                mf.TimedMessageBox(3000, "Simulator is off", "Simulator can't work while using real Antenna");
                 Close();
             }
-
-            {
-                mf.pn.latStart = (double)nudLatitude.Value;
-                mf.pn.lonStart = (double)nudLongitude.Value;
-
-                mf.pn.latitude = (double)nudLatitude.Value;
-                mf.pn.longitude = (double)nudLongitude.Value;
-
-                mf.sim.latitude = Properties.Settings.Default.setGPS_SimLatitude = (double)nudLatitude.Value;
-                mf.sim.longitude = Properties.Settings.Default.setGPS_SimLongitude = (double)nudLongitude.Value;
-                Properties.Settings.Default.Save();
-            }
-
-            mf.pn.SetLocalMetersPerDegree();
-
-            Properties.Settings.Default.setGPS_SimLatitude = mf.sim.latitude;
-            Properties.Settings.Default.setGPS_SimLongitude = mf.sim.longitude;
-            Properties.Settings.Default.Save();
+            mf.pn.DefineLocalPlane(new Wgs84((double)nudLatitude.Value, (double)nudLongitude.Value), true);
             Close();
         }
 
@@ -67,7 +53,7 @@ namespace AgOpenGPS
 
         private void nud_Click(object sender, EventArgs e)
         {
-            mf.KeypadToNUD((NumericUpDown)sender, this);
+            ((NudlessNumericUpDown)sender).ShowKeypad(this);
         }
     }
 }

@@ -1,18 +1,18 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace AgIO
 {
     public partial class FormYes : Form
     {
-        public FormYes(string messageStr)
+        public FormYes(string messageStr, bool showCancel = false)
         {
             InitializeComponent();
 
             lblMessage2.Text = messageStr;
+            btnCancel.Visible = showCancel;
 
-            int messWidth = messageStr.Length;
-            Width = messWidth * 15 + 180;
+            this.AcceptButton = btnSerialOK;
+            if (showCancel) this.CancelButton = btnCancel;
         }
     }
 }

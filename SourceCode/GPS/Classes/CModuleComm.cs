@@ -1,4 +1,6 @@
-﻿namespace AgOpenGPS
+﻿using AgOpenGPS.Core.Translations;
+
+namespace AgOpenGPS
 {
     public class CModuleComm
     {
@@ -11,12 +13,14 @@
         // ---- Section control switches to AOG  ---------------------------------------------------------
         //PGN - 32736 - 127.249 0x7FF9
         public byte[] ss = new byte[9];
+
         public byte[] ssP = new byte[9];
+
         public int
             swHeader = 0,
             swMain = 1,
-            swReserve = 2,
-            swReserve2 = 3,
+            swAutoGr0 = 2,
+            swAutoGr1 = 3,
             swNumSections = 4,
             swOnGr0 = 5,
             swOffGr0 = 6,
@@ -28,7 +32,7 @@
         public int actualSteerAngleChart = 0, sensorData = -1;
 
         //for the workswitch
-        public bool isWorkSwitchActiveLow, isRemoteWorkSystemOn, isWorkSwitchEnabled, 
+        public bool isWorkSwitchActiveLow, isRemoteWorkSystemOn, isWorkSwitchEnabled,
             isWorkSwitchManualSections, isSteerWorkSwitchManualSections, isSteerWorkSwitchEnabled;
 
         public bool workSwitchHigh, oldWorkSwitchHigh, steerSwitchHigh, oldSteerSwitchHigh, oldSteerSwitchRemote;
@@ -52,8 +56,10 @@
             {
                 oldSteerSwitchRemote = steerSwitchHigh;
                 //steerSwith is active low
-                if (steerSwitchHigh == mf.isAutoSteerBtnOn)
+                if (steerSwitchHigh == mf.isBtnAutoSteerOn)
+                {
                     mf.btnAutoSteer.PerformClick();
+                }
             }
 
             if (isRemoteWorkSystemOn)
@@ -89,7 +95,7 @@
                 {
                     oldSteerSwitchHigh = steerSwitchHigh;
 
-                    if ((mf.isAutoSteerBtnOn && mf.ahrs.isAutoSteerAuto)
+                    if ((mf.isBtnAutoSteerOn && mf.ahrs.isAutoSteerAuto)
                         || !mf.ahrs.isAutoSteerAuto && !steerSwitchHigh)
                     {
                         if (isSteerWorkSwitchManualSections)

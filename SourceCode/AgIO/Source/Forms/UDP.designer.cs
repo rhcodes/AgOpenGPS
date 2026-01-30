@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
+using AgLibrary.Logging;
 
 namespace AgIO
 {
@@ -50,12 +52,6 @@ namespace AgIO
             Properties.Settings.Default.eth_loopTwo.ToString() + "." +
             Properties.Settings.Default.eth_loopThree.ToString() + "." +
             Properties.Settings.Default.eth_loopFour.ToString()), 15555);
-
-        private IPEndPoint epAgVR = new IPEndPoint(IPAddress.Parse(
-            Properties.Settings.Default.eth_loopOne.ToString() + "." +
-            Properties.Settings.Default.eth_loopTwo.ToString() + "." +
-            Properties.Settings.Default.eth_loopThree.ToString() + "." +
-            Properties.Settings.Default.eth_loopFour.ToString()), 16666);
         
         public IPEndPoint epModule = new IPEndPoint(IPAddress.Parse(
                 Properties.Settings.Default.etIP_SubnetOne.ToString() + "." +
@@ -105,6 +101,16 @@ namespace AgIO
                     new AsyncCallback(ReceiveDataUDPAsync), null);
 
                 isUDPNetworkConnected = true;
+
+                if (isUDPNetworkConnected)
+                {
+                    Log.EventWriter("UDP Network is connected: " + epModule.ToString());
+                }
+                else
+                {
+                    Log.EventWriter("UDP Network Failed to Connect");
+                }
+
                 btnUDP.BackColor = Color.LimeGreen;
 
                 //if (!isFound)
@@ -118,7 +124,7 @@ namespace AgIO
             }
             catch (Exception e)
             {
-                //WriteErrorLog("UDP Server" + e);
+                Log.EventWriter("Catch -> Load UDP Server" + e);
                 MessageBox.Show(e.Message, "Serious Network Connection Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btnUDP.BackColor = Color.Red;
@@ -135,10 +141,12 @@ namespace AgIO
                 loopBackSocket.Bind(new IPEndPoint(IPAddress.Loopback, 17777));
                 loopBackSocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPointLoopBack, 
                     new AsyncCallback(ReceiveDataLoopAsync), null);
+                Log.EventWriter("Loopback is Connected: " + IPAddress.Loopback.ToString() + ":17777");
+
             }
             catch (Exception ex)
             {
-                //lblStatus.Text = "Error";
+                Log.EventWriter("Catch - > Load UDP Loopback Failed: " + ex.ToString());
                 MessageBox.Show("Load Error: " + ex.Message, "Loopback Server", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -148,11 +156,6 @@ namespace AgIO
         private void SendToLoopBackMessageAOG(byte[] byteData)
         {
             SendDataToLoopBack(byteData, epAgOpen);
-        }
-
-        private void SendToLoopBackMessageVR(byte[] byteData)
-        {
-            SendDataToLoopBack(byteData, epAgVR);
         }
 
         private void SendDataToLoopBack(byte[] byteData, IPEndPoint endPoint)
@@ -166,9 +169,8 @@ namespace AgIO
                         new AsyncCallback(SendDataLoopAsync), null);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show("Send Error: " + ex.Message, "UDP Client", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -178,9 +180,8 @@ namespace AgIO
             {
                 loopBackSocket.EndSend(asyncResult);
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show("SendData Error: " + ex.Message, "UDP Server", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -193,9 +194,6 @@ namespace AgIO
             //Send out to udp network
             SendUDPMessage(data, epModule);
 
-            //send out to VR Loopback
-            if (isPluginUsed) SendToLoopBackMessageVR(data);
-
             if (data[0] == 0x80 && data[1] == 0x81)
             {
                 switch (data[3])
@@ -207,6 +205,18 @@ namespace AgIO
                             SendMachineModulePort(data, data.Length);
                             break;
                         }
+                    case 0xEF: //239 machine pgn
+                        {
+                            SendMachineModulePort(data, data.Length);
+                            SendSteerModulePort(data, data.Length);
+                            break;
+                        }
+                    case 0xE5: //229 Symmetric Sections - Zones
+                        {
+                            SendMachineModulePort(data, data.Length);
+                            //SendSteerModulePort(data, data.Length);
+                            break;
+                        }
                     case 0xFC: //252 steer settings
                         {
                             SendSteerModulePort(data, data.Length);
@@ -215,21 +225,13 @@ namespace AgIO
                     case 0xFB: //251 steer config
                         {
                             SendSteerModulePort(data, data.Length);
-                            break;
-                        }
-                    case 0xEF: //239 machine pgn
-                        {
-                            SendMachineModulePort(data, data.Length);
-                            SendSteerModulePort(data, data.Length);
-                            break;
-                        }
+                            break;                        }
 
                     case 0xEE: //238 machine config
                         {
                             SendMachineModulePort(data, data.Length);
                             SendSteerModulePort(data, data.Length);
-                            break;
-                        }
+                            break;                        }
 
                     case 0xEC: //236 machine config
                         {
@@ -238,7 +240,7 @@ namespace AgIO
                             break;
                         }
                 }
-            }
+            }                            
         }
 
         private void ReceiveDataLoopAsync(IAsyncResult asyncResult)
@@ -257,10 +259,8 @@ namespace AgIO
 
                 BeginInvoke((MethodInvoker)(() => ReceiveFromLoopBack(localMsg)));
             }
-            catch (Exception)
+            catch
             {
-                //MessageBox.Show("ReceiveData Error: " + ex.Message, "UDP Server", MessageBoxButtons.OK,
-                //MessageBoxIcon.Error);
             }
         }
 
@@ -272,6 +272,19 @@ namespace AgIO
         {
             if (isUDPNetworkConnected)
             {
+                if (isUDPMonitorOn)
+                {
+                    if (epNtrip != null && endPoint.Port == epNtrip.Port)
+                    {
+                        if (isNTRIPLogOn)
+                            logUDPSentence.Append(DateTime.Now.ToString("ss.fff\t") + endPoint.ToString() + "\t" + " > NTRIP\r\n");
+                    }
+                    else
+                    {
+                        logUDPSentence.Append(DateTime.Now.ToString("ss.fff\t") + endPoint.ToString() + "\t" + " > " + byteData[3].ToString() + "\r\n");
+                    }
+                }
+
                 try
                 {
                     // Send packet to the zero
@@ -296,11 +309,8 @@ namespace AgIO
             {
                 UDPSocket.EndSend(asyncResult);
             }
-            catch (Exception)
+            catch
             {
-                //WriteErrorLog(" UDP Send Data" + e.ToString());
-                //MessageBox.Show("SendData Error: " + e.Message, "UDP Server", MessageBoxButtons.OK,
-                //MessageBoxIcon.Error);
             }
         }
 
@@ -325,11 +335,8 @@ namespace AgIO
                 BeginInvoke((MethodInvoker)(() => ReceiveFromUDP(localMsg)));
 
             }
-            catch (Exception)
+            catch 
             {
-                //WriteErrorLog("UDP Recv data " + e.ToString());
-                //MessageBox.Show("ReceiveData Error: " + e.Message, "UDP Server", MessageBoxButtons.OK,
-                //MessageBoxIcon.Error);
             }
         }
 
@@ -342,15 +349,14 @@ namespace AgIO
                     //module return via udp sent to AOG
                     SendToLoopBackMessageAOG(data);
 
-                    //module data also sent to VR
-                    if (isPluginUsed) SendToLoopBackMessageVR(data);
-
                     //check for Scan and Hello
                     if (data[3] == 126 && data.Length == 11)
                     {
+
                         traffic.helloFromAutoSteer = 0;
                         if (isViewAdvanced)
                         {
+                            lblPing.Text = (((DateTime.Now - Process.GetCurrentProcess().StartTime).TotalSeconds - pingSecondsStart) * 1000).ToString("N0");
                             double actualSteerAngle = (Int16)((data[6] << 8) + data[5]);
                             lblSteerAngle.Text = (actualSteerAngle * 0.01).ToString("N1");
                             lblWASCounts.Text = ((Int16)((data[8] << 8) + data[7])).ToString();
@@ -362,10 +368,12 @@ namespace AgIO
 
                     else if (data[3] == 123 && data.Length == 11)
                     {
+
                         traffic.helloFromMachine = 0;
 
                         if (isViewAdvanced)
                         {
+                            lblPingMachine.Text = (((DateTime.Now - Process.GetCurrentProcess().StartTime).TotalSeconds - pingSecondsStart) * 1000).ToString("N0");
                             lbl1To8.Text = Convert.ToString(data[5], 2).PadLeft(8, '0');
                             lbl9To16.Text = Convert.ToString(data[6], 2).PadLeft(8, '0');
                         }
@@ -434,6 +442,11 @@ namespace AgIO
                         }
                     }
 
+                    if (isUDPMonitorOn)
+                    {
+                        logUDPSentence.Append(DateTime.Now.ToString("ss.fff\t") + endPointUDP.ToString() + "\t" + " < " + data[3].ToString() + "\r\n");
+                    }
+
                 } // end of pgns
 
                 else if (data[0] == 36 && (data[1] == 71 || data[1] == 80 || data[1] == 75))
@@ -441,11 +454,15 @@ namespace AgIO
                     traffic.cntrGPSOut += data.Length;
                     rawBuffer += Encoding.ASCII.GetString(data);
                     ParseNMEA(ref rawBuffer);
+
+                    if (isUDPMonitorOn && isGPSLogOn)
+                    {
+                        logUDPSentence.Append(DateTime.Now.ToString("ss.fff\t") + System.Text.Encoding.ASCII.GetString(data));
+                    }
                 }
             }
             catch
             {
-
             }
         }
 

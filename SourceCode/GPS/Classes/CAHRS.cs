@@ -1,12 +1,11 @@
-﻿
-namespace AgOpenGPS
+﻿namespace AgOpenGPS
 {
     public class CAHRS
     {
         //private readonly FormGPS mf;
 
         //Roll and heading from the IMU
-        public double imuHeading = 99999, prevIMUHeading = 0, imuRoll = 0, imuPitch=0, imuYawRate = 0;
+        public double imuHeading = 99999, imuRoll = 0, imuPitch = 0, imuYawRate = 0;
 
         public System.Int16 angVel;
 
@@ -19,6 +18,10 @@ namespace AgOpenGPS
         //is the auto steer in auto turn on mode or not
         public bool isAutoSteerAuto, isRollInvert, isDualAsIMU, isReverseOn;
 
+        // AutoswitchDualFix 
+        public bool autoSwitchDualFixOn;
+        public double autoSwitchDualFixSpeed;
+
         //the factor for fusion of GPS and IMU
         public double forwardComp, reverseComp, fusionWeight;
 
@@ -29,9 +32,10 @@ namespace AgOpenGPS
 
             rollFilter = Properties.Settings.Default.setIMU_rollFilter;
 
-            fusionWeight = Properties.Settings.Default.setIMU_fusionWeight;
+            fusionWeight = Properties.Settings.Default.setIMU_fusionWeight2;
 
-            isAutoSteerAuto = Properties.Settings.Default.setAS_isAutoSteerAutoOn;
+            //isAutoSteerAuto = Properties.Settings.Default.setAS_isAutoSteerAutoOn;
+            isAutoSteerAuto = true;
 
             forwardComp = Properties.Settings.Default.setGPS_forwardComp;
 
@@ -39,10 +43,11 @@ namespace AgOpenGPS
 
             isRollInvert = Properties.Settings.Default.setIMU_invertRoll;
 
-            isDualAsIMU = Properties.Settings.Default.setIMU_isDualAsIMU;
-
             isReverseOn = Properties.Settings.Default.setIMU_isReverseOn;
+
+            autoSwitchDualFixOn = Properties.Settings.Default.setAutoSwitchDualFixOn;
+
+            autoSwitchDualFixSpeed = Properties.Settings.Default.setAutoSwitchDualFixSpeed;
         }
     }
 }
-

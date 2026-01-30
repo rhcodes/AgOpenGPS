@@ -32,7 +32,7 @@ namespace AgOpenGPS
             //constructor
             mf = _f;
             patchList.Capacity = 2048;
-            //triangleList.Capacity = 
+            //triangleList.Capacity =
         }
 
         public void TurnMappingOn(int j)
@@ -54,10 +54,9 @@ namespace AgOpenGPS
                 {
                     triangleList.Add(new vec3(mf.sectionColorDay.R, mf.sectionColorDay.G, mf.sectionColorDay.B));
                 }
-
-                else 
+                else
                 {
-                    if(mf.tool.isSectionsNotZones)
+                    if (mf.tool.isSectionsNotZones)
                         triangleList.Add(new vec3(mf.tool.secColors[j].R, mf.tool.secColors[j].G, mf.tool.secColors[j].B));
                     else
                         triangleList.Add(new vec3(mf.sectionColorDay.R, mf.sectionColorDay.G, mf.sectionColorDay.B));
@@ -71,6 +70,8 @@ namespace AgOpenGPS
 
                 //Right side of triangle
                 triangleList.Add(new vec3(rightPoint.easting, rightPoint.northing, 0));
+
+                mf.patchCounter++;
             }
         }
 
@@ -98,7 +99,6 @@ namespace AgOpenGPS
 
         public void AddMappingPoint(int j)
         {
-
             leftPoint = mf.section[currentStartSectionNum].leftPoint;
             rightPoint = mf.section[currentEndSectionNum].rightPoint;
 
@@ -111,10 +111,10 @@ namespace AgOpenGPS
             //Right side
             triangleList.Add(new vec3(rightPoint.easting, rightPoint.northing, 0));
 
-            //count the triangle pairs
+            //countExit the triangle pairs
             numTriangles++;
 
-            //quick count
+            //quick countExit
             int c = triangleList.Count - 1;
 
             //when closing a job the triangle patches all are emptied but the section delay keeps going.
@@ -126,7 +126,7 @@ namespace AgOpenGPS
                     double temp = Math.Abs((triangleList[c].easting * (triangleList[c - 1].northing - triangleList[c - 2].northing))
                               + (triangleList[c - 1].easting * (triangleList[c - 2].northing - triangleList[c].northing))
                                   + (triangleList[c - 2].easting * (triangleList[c].northing - triangleList[c - 1].northing)));
-                                     
+
                     temp += Math.Abs((triangleList[c - 1].easting * (triangleList[c - 2].northing - triangleList[c - 3].northing))
                               + (triangleList[c - 2].easting * (triangleList[c - 3].northing - triangleList[c - 1].northing))
                                   + (triangleList[c - 3].easting * (triangleList[c - 1].northing - triangleList[c - 2].northing)));

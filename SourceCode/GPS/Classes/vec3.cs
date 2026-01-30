@@ -1,31 +1,12 @@
 ﻿//Please, if you use this, share the improvements
 
+using AgOpenGPS.Core.Models;
 using System;
+using System.Globalization;
 
 namespace AgOpenGPS
 {
-    public struct vecRGB
-    {
-        public byte red;
-        public byte grn;
-        public byte blu;
-        public byte alpha;
-
-        public vecRGB(byte red, byte grn, byte blu, byte alpha)
-        {
-            this.red = red;
-            this.grn = grn;
-            this.blu = blu;
-            this.alpha = alpha;
-        }
-    }
-
-    /// <summary>
-    /// Represents a three dimensional vector.
-    /// </summary>
-    ///
-
-        public struct vec3
+    public struct vec3
     {
         public double easting;
         public double northing;
@@ -45,52 +26,23 @@ namespace AgOpenGPS
             heading = v.heading;
         }
 
-        public double HeadingXZ()
+        public vec3(GeoCoord geoCoord)
         {
-            return Math.Atan2(easting, northing);
+            easting = geoCoord.Easting;
+            northing = geoCoord.Northing;
+            heading = 0.0;
         }
 
-        public void Normalize()
+        public GeoCoord ToGeoCoord()
         {
-            double length = GetLength();
-            if (Math.Abs(length) < 0.0000000000001)
-            {
-                throw new DivideByZeroException("Trying to normalize a vector with length of zero.");
-            }
-
-            easting /= length;
-            northing /= length;
-            heading /= length;
+            return new GeoCoord(northing, easting);
+        }
+        public vec2 ToVec2()
+        {
+            return new vec2(easting, northing);
         }
 
-        //Returns the length of the vector
-        public double GetLength()
-        {
-            return Math.Sqrt((easting * easting) + (heading * heading) + (northing * northing));
-        }
-
-        // Calculates the squared length of the vector.
-        public double GetLengthSquared()
-        {
-            return (easting * easting) + (heading * heading) + (northing * northing);
-        }
-
-        public static vec3 operator -(vec3 lhs, vec3 rhs)
-        {
-            return new vec3(lhs.easting - rhs.easting, lhs.northing - rhs.northing, lhs.heading - rhs.heading);
-        }
-
-        //public static bool operator ==(vec3 lhs, vec3 rhs)
-        //{
-        //    return (lhs.x == rhs.x && lhs.z == rhs.z && lhs.h == rhs.h);
-        //}
-
-        //public static bool operator !=(vec3 lhs, vec3 rhs)
-        //{
-        //    return (lhs.x != rhs.x && lhs.z != rhs.z && lhs.h != rhs.h);
-        //}
     }
-
 
     public struct vecFix2Fix
     {
@@ -108,32 +60,10 @@ namespace AgOpenGPS
         }
     }
 
-
-    //
-
-    /// <summary>
-    /// easting, northing, heading, boundary#
-    /// </summary>
-    public struct vec4
-    {
-        public double easting; //easting
-        public double heading; //heading etc
-        public double northing; //northing
-        public int index;    //altitude
-
-        public vec4(double _easting, double _northing, double _heading, int _index)
-        {
-            this.easting = _easting;
-            this.heading = _heading;
-            this.northing = _northing;
-            this.index = _index;
-        }
-    }
-
     public struct vec2
     {
-        public double easting; //easting
-        public double northing; //northing
+        public double easting;
+        public double northing;
 
         public vec2(double easting, double northing)
         {
@@ -141,28 +71,33 @@ namespace AgOpenGPS
             this.northing = northing;
         }
 
+        public vec2(vec2 v)
+        {
+            easting = v.easting;
+            northing = v.northing;
+        }
+
+        public vec2(GeoCoord geoCoord)
+        {
+            northing = geoCoord.Northing;
+            easting = geoCoord.Easting;
+        }
+
+        public GeoCoord ToGeoCoord()
+        {
+            return new GeoCoord(northing, easting);
+        }
+
         public static vec2 operator -(vec2 lhs, vec2 rhs)
         {
             return new vec2(lhs.easting - rhs.easting, lhs.northing - rhs.northing);
         }
 
-        //public static bool operator ==(vec2 lhs, vec2 rhs)
-        //{
-        //    return (lhs.x == rhs.x && lhs.z == rhs.z);
-        //}
-
-        //public static bool operator !=(vec2 lhs, vec2 rhs)
-        //{
-        //    return (lhs.x != rhs.x && lhs.z != rhs.z);
-        //}
-
-        //calculate the heading of dirction pointx to pointz
         public double HeadingXZ()
         {
             return Math.Atan2(easting, northing);
         }
 
-        //normalize to 1
         public vec2 Normalize()
         {
             double length = GetLength();
@@ -171,133 +106,67 @@ namespace AgOpenGPS
                 throw new DivideByZeroException("Trying to normalize a vector with length of zero.");
             }
 
-            return new vec2(easting /= length, northing /= length);
+            return new vec2(easting / length, northing / length);
         }
 
-        //Returns the length of the vector
         public double GetLength()
         {
             return Math.Sqrt((easting * easting) + (northing * northing));
         }
 
-        // Calculates the squared length of the vector.
         public double GetLengthSquared()
         {
             return (easting * easting) + (northing * northing);
         }
 
-        //scalar double
         public static vec2 operator *(vec2 self, double s)
         {
             return new vec2(self.easting * s, self.northing * s);
         }
 
-        //add 2 vectors
         public static vec2 operator +(vec2 lhs, vec2 rhs)
         {
             return new vec2(lhs.easting + rhs.easting, lhs.northing + rhs.northing);
         }
-    }
 
-    //structure for contour guidance
-    public struct cvec
-    {
-        public double x;
-        public double z;
-        public double h;
-        public int strip;
-        public int pt;
-
-        //specialized contour vector
-        public cvec(double x, double z, double h, int s, int p)
+        public static vec2 Lerp(vec2 a, vec2 b, double t)
         {
-            this.x = x;
-            this.z = z;
-            this.h = h;
-            strip = s;
-            pt = p;
+            return new vec2(
+                a.easting + (b.easting - a.easting) * t,
+                a.northing + (b.northing - a.northing) * t
+            );
         }
 
-        public cvec(vec3 v)
+        public static float Cross(vec2 a, vec2 b)
         {
-            x = v.easting;
-            z = v.northing;
-            h = v.heading;
-            strip = 99999;
-            pt = 99999;
+            return (float)(a.easting * b.northing - a.northing * b.easting);
+        }
+
+        public static double Dot(vec2 a, vec2 b)
+        {
+            return a.easting * b.easting + a.northing * b.northing;
+        }
+
+        public static bool IsPointOnSegment(vec2 a, vec2 b, vec2 p)
+        {
+            double lenSq = (b - a).GetLengthSquared();
+            double proj = Dot(p - a, b - a) / lenSq;
+            return proj >= 0 && proj <= 1;
+        }
+
+        public static vec2 ProjectOnSegment(vec2 a, vec2 b, vec2 p, out double t)
+        {
+            vec2 ab = b - a;
+            double abLenSq = ab.GetLengthSquared();
+            if (abLenSq < 1e-6)
+            {
+                t = 0;
+                return a;
+            }
+
+            vec2 ap = p - a;
+            t = Math.Max(0, Math.Min(1, Dot(ap, ab) / abLenSq));
+            return a + ab * t;
         }
     }
 }
-
-//public double this[int index]
-//{
-//    get
-//    {
-//        if (index == 0) return x;
-//        else if (index == 1) return z;
-//        else throw new Exception("Out of range.");
-//    }
-//    set
-//    {
-//        if (index == 0) x = value;
-//        else if (index == 1) z = value;
-//        else throw new Exception("Out of range.");
-//    }
-//}
-
-//public vec2(double s)
-//{
-//    x = z = s;
-//}
-
-//public vec2(vec2 v)
-//{
-//    this.x = v.x;
-//    this.z = v.z;
-//}
-
-//public vec2(vec3 v)
-//{
-//    this.x = v.x;
-//    this.z = v.z;
-//}
-
-//public static vec2 operator +(vec2 lhs, vec2 rhs)
-//{
-//    return new vec2(lhs.x + rhs.x, lhs.z + rhs.z);
-//}
-
-//public static vec2 operator +(vec2 lhs, double rhs)
-//{
-//    return new vec2(lhs.x + rhs, lhs.z + rhs);
-//}
-
-//public static vec2 operator -(vec2 lhs, double rhs)
-//{
-//    return new vec2(lhs.x - rhs, lhs.z - rhs);
-//}
-
-//public static vec2 operator *(vec2 self, double s)
-//{
-//    return new vec2(self.x * s, self.z * s);
-//}
-
-//public static vec2 operator *(double lhs, vec2 rhs)
-//{
-//    return new vec2(rhs.x * lhs, rhs.z * lhs);
-//}
-
-//public static vec2 operator *(vec2 lhs, vec2 rhs)
-//{
-//    return new vec2(rhs.x * lhs.x, rhs.z * lhs.z);
-//}
-
-//public static vec2 operator /(vec2 lhs, double rhs)
-//{
-//    return new vec2(lhs.x / rhs, lhs.z / rhs);
-//}
-
-//public double[] to_array()
-//{
-//    return new[] { x, z };
-//}

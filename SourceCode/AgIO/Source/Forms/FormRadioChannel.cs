@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using AgIO.Controls;
 
 namespace AgIO
 {
@@ -38,7 +39,7 @@ namespace AgIO
 
         private void btnSerialOK_Click(object sender, EventArgs e)
         {
-            if(!int.TryParse(tbId.Text, out int channelId))
+            if (!int.TryParse(tbId.Text, out int channelId))
             {
                 mf.TimedMessageBox(2000, "Invalid Id", $"Id '{tbId.Text}' is not a valid number");
                 DialogResult = DialogResult.None;
@@ -73,7 +74,7 @@ namespace AgIO
         {
             if (mf.isKeyboardOn)
             {
-                mf.KeyboardToText((TextBox)sender, this);
+                ((TextBox)sender).ShowKeyboard(this);
             }
         }
     }

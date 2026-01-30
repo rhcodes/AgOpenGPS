@@ -38,8 +38,8 @@
             this.btnOpenExistingLv = new System.Windows.Forms.Button();
             this.btnDeleteAB = new System.Windows.Forms.Button();
             this.btnDeleteField = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.labelDeleteField = new System.Windows.Forms.Label();
+            this.labelCancel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lvLines
@@ -59,7 +59,7 @@
             this.lvLines.Location = new System.Drawing.Point(5, 12);
             this.lvLines.MultiSelect = false;
             this.lvLines.Name = "lvLines";
-            this.lvLines.Size = new System.Drawing.Size(967, 459);
+            this.lvLines.Size = new System.Drawing.Size(986, 459);
             this.lvLines.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvLines.TabIndex = 86;
             this.lvLines.UseCompatibleStateImageBehavior = false;
@@ -67,7 +67,7 @@
             // 
             // chName
             // 
-            this.chName.Text = "Field Name";
+            this.chName.Text = "Field";
             this.chName.Width = 680;
             // 
             // chDistance
@@ -134,7 +134,7 @@
             // 
             this.btnDeleteField.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold);
             this.btnDeleteField.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnDeleteField.Image = global::AgOpenGPS.Properties.Resources.skull;
+            this.btnDeleteField.Image = global::AgOpenGPS.Properties.Resources.Trash;
             this.btnDeleteField.Location = new System.Drawing.Point(46, 507);
             this.btnDeleteField.Name = "btnDeleteField";
             this.btnDeleteField.Size = new System.Drawing.Size(71, 63);
@@ -142,34 +142,35 @@
             this.btnDeleteField.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnDeleteField.Click += new System.EventHandler(this.btnDeleteField_Click);
             // 
-            // label1
+            // labelDeleteField
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(43, 488);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(74, 16);
-            this.label1.TabIndex = 95;
-            this.label1.Text = "Delete Field";
+            this.labelDeleteField.AutoSize = true;
+            this.labelDeleteField.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelDeleteField.Location = new System.Drawing.Point(43, 488);
+            this.labelDeleteField.Name = "labelDeleteField";
+            this.labelDeleteField.Size = new System.Drawing.Size(74, 16);
+            this.labelDeleteField.TabIndex = 95;
+            this.labelDeleteField.Text = "Delete Field";
             // 
-            // label2
+            // labelCancel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(515, 488);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(45, 16);
-            this.label2.TabIndex = 96;
-            this.label2.Text = "Cancel";
+            this.labelCancel.AutoSize = true;
+            this.labelCancel.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelCancel.Location = new System.Drawing.Point(515, 488);
+            this.labelCancel.Name = "labelCancel";
+            this.labelCancel.Size = new System.Drawing.Size(45, 16);
+            this.labelCancel.TabIndex = 96;
+            this.labelCancel.Text = "Cancel";
             // 
             // FormFilePicker
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 23F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(972, 578);
+            this.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.ClientSize = new System.Drawing.Size(991, 578);
             this.ControlBox = false;
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.labelCancel);
+            this.Controls.Add(this.labelDeleteField);
             this.Controls.Add(this.btnDeleteField);
             this.Controls.Add(this.btnByDistance);
             this.Controls.Add(this.btnOpenExistingLv);
@@ -198,7 +199,7 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ColumnHeader chArea;
         private System.Windows.Forms.Button btnDeleteField;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label labelDeleteField;
+        private System.Windows.Forms.Label labelCancel;
     }
 }

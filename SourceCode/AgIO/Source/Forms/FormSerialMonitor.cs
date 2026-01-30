@@ -1,14 +1,10 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Ports;
-using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Windows.Forms;
+using System.Windows.Threading;
+using AgLibrary.Logging;
 
 namespace AgIO
 {
@@ -20,8 +16,8 @@ namespace AgIO
         public static string portName = "***";
         public static int baudRate = 115200;
 
-        public string recvSentence = "GPS";
         public SerialPort sp = new SerialPort(portName, baudRate, Parity.None, 8, StopBits.One);
+        private readonly Dispatcher _dispatcher;
 
         private bool logOn = false;
 
@@ -29,6 +25,7 @@ namespace AgIO
         {
             //get copy of the calling main form
             mf = callingForm as FormLoop;
+            _dispatcher = Dispatcher.CurrentDispatcher;
             InitializeComponent();
         }
 
@@ -42,26 +39,10 @@ namespace AgIO
         }
 
         #region IMUSerialPort //--------------------------------------------------------------------
+
         private void ReceivePort(string sentence)
         {
             textBoxRcv.AppendText(sentence);
-        }
-
-        //Send machine info out to machine board
-        public void SendPort(byte[] items, int numItems)
-        {
-            //Tell Arduino to turn section on or off accordingly
-            //if (sp.IsOpen)
-            //{
-            //    try
-            //    {
-            //        sp.Write(items, 0, numItems);
-            //    }
-            //    catch (Exception)
-            //    {
-            //        ClosePort();
-            //    }
-            //}
         }
 
         //open the Arduino serial port
@@ -77,16 +58,9 @@ namespace AgIO
             }
 
             try { sp.Open(); }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                //WriteErrorLog("Opening Machine Port" + e.ToString());
-
-                //MessageBox.Show(e.Message + "\n\r" + "\n\r" + "Go to Settings -> COM Ports to Fix", "No Arduino Port Active");
-
-
-                //Properties.Settings.Default.setPort_wasConnected = false;
-                //Properties.Settings.Default.Save();
-                //wasConnectedLastRun = false;
+                Log.EventWriter("Catch - > Open Arduino Serial" + ex.ToString());
             }
 
             if (sp.IsOpen)
@@ -109,10 +83,9 @@ namespace AgIO
                 {
                     sp.Close();
                 }
-
                 catch (Exception e)
                 {
-                    //WriteErrorLog("Closing Machine Serial Port" + e.ToString());
+                    Log.EventWriter("Catch -> Closing Machine Serial Port" + e.ToString());
                     MessageBox.Show(e.Message, "Connection already terminated??");
                 }
 
@@ -127,15 +100,16 @@ namespace AgIO
                 try
                 {
                     string sentence = sp.ReadExisting();
-                    BeginInvoke((MethodInvoker)(() => ReceivePort(sentence)));
+                    _dispatcher.BeginInvoke(DispatcherPriority.Background, (MethodInvoker)(() => ReceivePort(sentence)));
                 }
                 catch (Exception)
                 {
+
                 }
             }
         }
-        #endregion ----------------------------------------------------------------
 
+        #endregion IMUSerialPort //--------------------------------------------------------------------
 
         private void btnSerialCancel_Click(object sender, EventArgs e)
         {
@@ -145,7 +119,7 @@ namespace AgIO
 
         private void btnHelp_Click(object sender, EventArgs e)
         {
-            //System.Diagnostics.Process.Start(gStr.gsEthernetHelp);
+            //System.Diagnostics.Process.Start(gStr.gsSerialMonHelp);
         }
 
         private void cboxPort_SelectedIndexChanged(object sender, EventArgs e)
@@ -180,7 +154,6 @@ namespace AgIO
                 btnOpenSerial.Enabled = true;
                 MessageBox.Show("Unable to connect to Port");
             }
-
         }
 
         private void btnRescan_Click(object sender, EventArgs e)
@@ -210,7 +183,6 @@ namespace AgIO
                 btnCloseSerial.Enabled = false;
                 btnOpenSerial.Enabled = true;
             }
-
         }
 
         private void btnLog_Click(object sender, EventArgs e)
@@ -248,7 +220,7 @@ namespace AgIO
 
         private void FormSerialMonitor_FormClosing(object sender, FormClosingEventArgs e)
         {
-            mf.isLogMonitorOn=false;
+            mf.isLogMonitorOn = false;
         }
 
         private void btnClear_Click(object sender, EventArgs e)

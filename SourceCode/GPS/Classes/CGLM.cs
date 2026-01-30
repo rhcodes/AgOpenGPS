@@ -6,8 +6,25 @@ using System.Drawing.Imaging;
 
 namespace AgOpenGPS
 {
+
     public static class glm
     {
+        private const double DefaultZeroTolerance = 1e-6;
+
+        public static bool IsZero(double value, double tolerance = DefaultZeroTolerance)
+        {
+            return Math.Abs(value) <= tolerance;
+        }
+
+        public static bool InRangeBetweenAB(double start_x, double start_y, double end_x, double end_y,
+          double point_x, double point_y)
+        {
+            double dx = end_x - start_x;
+            double dy = end_y - start_y;
+            double innerProduct = (point_x - start_x) * dx + (point_y - start_y) * dy;
+            return 0 <= innerProduct && innerProduct <= dx * dx + dy * dy;
+        }
+
         public static bool IsPointInPolygon(this List<vec3> polygon, vec3 testPoint)
         {
             bool result = false;
@@ -96,22 +113,12 @@ namespace AgOpenGPS
         {
             if (polygon.Count > 2)
             {
-                GL.Begin(PrimitiveType.LineLoop);
+                GL.Begin(PrimitiveType.LineStrip);
                 for (int i = 0; i < polygon.Count; i++)
                 {
                     GL.Vertex3(polygon[i].easting, polygon[i].northing, 0);
                 }
                 GL.End();
-
-                //GL.PointSize(8.0f);
-                //GL.Begin(PrimitiveType.Points);
-                //GL.Color3(1.0f, 1.0f, 0.50f);
-                //for (int i = 0; i < polygon.Count; i++)
-                //{
-                //    GL.Vertex3(polygon[i].easting, polygon[i].northing, 0);
-                //}
-                //GL.End();
-                //GL.PointSize(1.0f);
             }
         }
 
@@ -125,16 +132,6 @@ namespace AgOpenGPS
                     GL.Vertex3(polygon[i].easting, polygon[i].northing, 0);
                 }
                 GL.End();
-
-                //GL.PointSize(8.0f);
-                //GL.Begin(PrimitiveType.Points);
-                //GL.Color3(1.0f, 1.0f, 0.50f);
-                //for (int i = 0; i < polygon.Count; i++)
-                //{
-                //    GL.Vertex3(polygon[i].easting, polygon[i].northing, 0);
-                //}
-                //GL.End();
-                //GL.PointSize(1.0f);
             }
         }
 
@@ -177,38 +174,10 @@ namespace AgOpenGPS
             //double tt = 0.25;
 
             //vec2 pos = 0.5 * (a + (tt*b) + (tt * tt * c) + (tt * tt * tt * d));
-
-
-        }
-
-
-        // Catmull Rom gradient calculation
-        public static double CatmullGradient(double t, vec3 p0, vec3 p1, vec3 p2, vec3 p3)
-        {
-            double tt = t * t;
-
-            double q1 = -3.0f * tt + 4.0f * t - 1;
-            double q2 = 9.0f * tt - 10.0f * t;
-            double q3 = -9.0f * tt + 8.0f * t + 1.0f;
-            double q4 = 3.0f * tt - 2.0f * t;
-
-            double tx = 0.5f * (p0.easting * q1 + p1.easting * q2 + p2.easting * q3 + p3.easting * q4);
-            double ty = 0.5f * (p0.northing * q1 + p1.northing * q2 + p2.northing * q3 + p3.northing * q4);
-
-            return Math.Atan2(tx, ty);
-
-            //f(t) = a_3 * t^3 + a_2 * t^2 + a_1 * t + a_0  cubic polynomial
-            //vec3 a = 2.0 * p1;
-            //vec3 b = p2 - p0;
-            //vec3 c = 2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3;
-            //vec3 d = -1.0 * p0 + 3.0 * p1 - 3.0 * p2 + p3;
-
-            //return (0.5 * (a + (t * b) + (t * t * c) + (t * t * t * d)));
-            //
         }
 
         //Regex file expression
-        public const string fileRegex = "(^(PRN|AUX|NUL|CON|COM[1-9]|LPT[1-9]|(\\.+)$)(\\..*)?$)|(([\\x00-\\x1f\\\\?*:\";‌​|/<>])+)|([\\.]+)";
+        public const string fileRegex = " /^(?!.{256,})(?!(aux|clock\\$|con|nul|prn|com[1-9]|lpt[1-9])(?:$|\\.))[^ ][ \\.\\w-$()+=[\\];#@~,&amp;']+[^\\. ]$/i";
 
         //inches to meters
         public const double in2m = 0.0254;
@@ -326,8 +295,6 @@ namespace AgOpenGPS
                 + Math.Pow(first.northing - second.northing, 2));
         }
 
-
-
         //not normalized distance, no square root
         public static double DistanceSquared(double northing1, double easting1, double northing2, double easting2)
         {
@@ -354,11 +321,19 @@ namespace AgOpenGPS
             Math.Pow(first.easting - second.easting, 2)
             + Math.Pow(first.northing - second.northing, 2));
         }
+
         public static double DistanceSquared(vec2 first, vec2 second)
         {
             return (
             Math.Pow(first.easting - second.easting, 2)
             + Math.Pow(first.northing - second.northing, 2));
+        }
+
+        public static double DistanceSquared(vecFix2Fix first, vec2 second)
+        {
+            return (
+                Math.Pow(first.easting - second.easting, 2)
+                + Math.Pow(first.northing - second.northing, 2));
         }
 
         public static Bitmap MakeGrayscale3(Bitmap original)
@@ -389,6 +364,65 @@ namespace AgOpenGPS
             g.Dispose();
             return newBitmap;
         }
+        // Optional: absolute angle difference (range 0–π)
+        public static double AngleDiff(double angle1, double angle2)
+        {
+            double diff = Math.Abs(angle1 - angle2);
+            if (diff > Math.PI) diff = twoPI - diff;
+            return diff;
+        }
 
+        /// <summary>
+        /// This method performs a raycast from the origin point in the direction of the heading
+        /// This is used for HeadlandProximity and the distance to the headland
+        /// </summary>
+
+        public static vec2? RaycastToPolygon(vec3 origin, List<vec3> polygon)
+        {
+            vec2 from = origin.ToVec2();
+            vec2 dir = new vec2(Math.Sin(origin.heading), Math.Cos(origin.heading));
+
+            double minDist = double.MaxValue;
+            vec2? closest = null;
+
+            for (int i = 0; i < polygon.Count; i++)
+            {
+                vec2 p1 = polygon[i].ToVec2();
+                vec2 p2 = polygon[(i + 1) % polygon.Count].ToVec2();
+
+                if (TryRaySegmentIntersection(from, dir, p1, p2, out vec2 intersection))
+                {
+                    double dist = Distance(from, intersection);
+                    if (dist < minDist)
+                    {
+                        minDist = dist;
+                        closest = intersection;
+                    }
+                }
+            }
+
+            return closest;
+        }
+        public static bool TryRaySegmentIntersection(vec2 rayOrigin, vec2 rayDir, vec2 segA, vec2 segB, out vec2 intersection)
+        {
+            intersection = new vec2();
+
+            double dx = segB.easting - segA.easting;
+            double dy = segB.northing - segA.northing;
+
+            double det = (-rayDir.easting * dy + dx * rayDir.northing);
+            if (Math.Abs(det) < 1e-8) return false; // parallel
+
+            double s = (-dy * (segA.easting - rayOrigin.easting) + dx * (segA.northing - rayOrigin.northing)) / det;
+            double t = (rayDir.easting * (segA.northing - rayOrigin.northing) - rayDir.northing * (segA.easting - rayOrigin.easting)) / det;
+
+            if (s >= 0 && t >= 0 && t <= 1)
+            {
+                intersection = new vec2(rayOrigin.easting + s * rayDir.easting, rayOrigin.northing + s * rayDir.northing);
+                return true;
+            }
+
+            return false;
+        }
     }
 }
